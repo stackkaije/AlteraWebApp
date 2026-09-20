@@ -23,6 +23,7 @@ let purchasePollTimer = null;
 let purchaseExpiryTimer = null;
 let currentBalance = null;
 let checkoutRequestKey = null;
+let audioContext = null;
 
 function updateBootProgress(value, status) {
   bootProgress = Math.max(bootProgress, Math.min(100, value));
@@ -165,6 +166,27 @@ $("glass-toggle").addEventListener("click", () => {
   applyGlassPreference(enabled);
 });
 applyGlassPreference(localStorage.getItem("altera-glass") !== "false");
+function applySoundPreference(enabled) {
+  const toggle = $("sound-toggle");
+  if (!toggle) return;
+  toggle.setAttribute("aria-checked", String(enabled));
+  toggle.classList.toggle("is-on", enabled);
+  toggle.querySelector("b").textContent = enabled ? "Вкл." : "Выкл.";
+}
+$("sound-toggle").addEventListener("click", () => {
+  const enabled = $("sound-toggle").getAttribute("aria-checked") !== "true";
+  localStorage.setItem("altera-sounds", String(enabled));
+  applySoundPreference(enabled);
+  if (enabled) playInterfaceSound("bonus");
+});
+applySoundPreference(localStorage.getItem("altera-sounds") !== "false");
+document.addEventListener("pointermove", (event) => {
+  if (event.pointerType === "touch") return;
+  const x = (event.clientX / window.innerWidth - .5) * 16;
+  const y = (event.clientY / window.innerHeight - .5) * 16;
+  document.body.style.setProperty("--pointer-x", x.toFixed(2));
+  document.body.style.setProperty("--pointer-y", y.toFixed(2));
+}, { passive: true });
 document.body.addEventListener("click", async (event) => {
   const viewButton = event.target.closest("[data-view]");
   if (viewButton && !viewButton.classList.contains("tab")) showView(viewButton.dataset.view);
@@ -199,6 +221,8 @@ document.body.addEventListener("click", async (event) => {
 catalogNode.addEventListener("click", handleCatalogClick);
 $("product-detail").addEventListener("click", handleCatalogClick);
 $("favorites-list").addEventListener("click", handleCatalogClick);
+$("catalog").addEventListener("pointermove", handleCardTilt, { passive: true });
+$("catalog").addEventListener("pointerleave", resetCardTilt, { passive: true });
 $("cart-list").addEventListener("click", handleCartClick);
 checkoutNode.addEventListener("click", (event) => {
   if (event.target === checkoutNode) closeCheckout();
@@ -494,7 +518,7 @@ function cardTemplate(item) {
   const rating = Number(item.rating || 0);
   const reviews = Number(item.reviews_count || 0);
   const badges = (item.badges || []).slice(0, 2).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("");
-  return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}">
+  return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}" data-tilt-card>
     <div class="card-top"><span class="pill"><span class="category-icon" aria-hidden="true">${groupIcon(item.group || "other")}</span>${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
     ${badges ? `<div class="badges">${badges}</div>` : ""}
     <h2>${escapeHtml(item.name)}</h2>
@@ -511,6 +535,28 @@ function groupTitle(group) {
 }
 function groupIcon(group) {
   return { l0gu_1970: "⌁", gy_1970: "◈", tbank: "₽", other: "✦" }[group] || "✦";
+}
+
+function handleCardTilt(event) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || event.pointerType === "touch") return;
+  const card = event.target.closest("[data-tilt-card]");
+  const activeCard = document.querySelector(".card.is-tilting");
+  if (activeCard && activeCard !== card) resetCardTilt({ target: activeCard });
+  if (!card) return;
+  const bounds = card.getBoundingClientRect();
+  const x = (event.clientX - bounds.left) / bounds.width - .5;
+  const y = (event.clientY - bounds.top) / bounds.height - .5;
+  card.classList.add("is-tilting");
+  card.style.setProperty("--tilt-x", `${(y * -3.2).toFixed(2)}deg`);
+  card.style.setProperty("--tilt-y", `${(x * 3.2).toFixed(2)}deg`);
+}
+
+function resetCardTilt(event) {
+  const card = event.target.closest?.("[data-tilt-card]") || document.querySelector(".card.is-tilting");
+  if (!card) return;
+  card.classList.remove("is-tilting");
+  card.style.removeProperty("--tilt-x");
+  card.style.removeProperty("--tilt-y");
 }
 
 function handleCatalogClick(event) {
@@ -828,6 +874,7 @@ function showSuccessScreen(orderNumber, itemText) {
   $("purchase-success").classList.remove("success-visible");
   requestAnimationFrame(() => $("purchase-success").classList.add("success-visible"));
   launchConfetti();
+  playInterfaceSound("payment");
   $("success-close").focus();
 }
 
@@ -925,6 +972,7 @@ function addToCart(id, count = 1) {
   card?.classList.remove("cart-added");
   requestAnimationFrame(() => card?.classList.add("cart-added"));
   showToast(`${item.name} добавлен в корзину`, "success");
+  playInterfaceSound("cart");
   haptic("light");
 }
 
@@ -1145,6 +1193,35 @@ function formatDate(value) {
 
 function setStatus(message) { statusNode.textContent = message; }
 function haptic(style = "light") { try { tg?.HapticFeedback?.impactOccurred(style); } catch {} }
+function playInterfaceSound(kind) {
+  if (localStorage.getItem("altera-sounds") === "false") return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  try {
+    audioContext ||= new AudioContextClass();
+    if (audioContext.state === "suspended") audioContext.resume();
+    const notes = {
+      cart: [[520, 0], [700, .07]],
+      payment: [[440, 0], [660, .1], [880, .2]],
+      bonus: [[660, 0], [880, .1]]
+    }[kind] || [[520, 0]];
+    const now = audioContext.currentTime;
+    notes.forEach(([frequency, offset]) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(.045, now + offset + .015);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + offset + .13);
+      oscillator.connect(gain).connect(audioContext.destination);
+      oscillator.start(now + offset);
+      oscillator.stop(now + offset + .14);
+    });
+  } catch (error) {
+    console.warn("Не удалось воспроизвести звук интерфейса", error);
+  }
+}
 function showToast(message, type = "default") {
   const container = $("toast-container");
   if (!container) return;
@@ -1196,6 +1273,7 @@ async function startDeposit() {
       tg.openInvoice(result.invoice_link, (invoiceStatus) => {
         if (invoiceStatus === "paid") {
           showToast(`Баланс пополнен на ${amount.toFixed(2)} USDT`);
+          playInterfaceSound("bonus");
           status.textContent = "Оплата подтверждена.";
           loadProfile();
         } else if (invoiceStatus === "cancelled" || invoiceStatus === "failed") {
@@ -1227,6 +1305,7 @@ function pollDeposit(invoiceId, amount) {
         clearInterval(depositPollTimer);
         $("deposit-status").textContent = "Оплата подтверждена.";
         showToast(`Баланс пополнен на ${amount.toFixed(2)} USDT`);
+        playInterfaceSound("bonus");
         loadProfile();
       } else if (result.status === "expired") {
         clearInterval(depositPollTimer);
