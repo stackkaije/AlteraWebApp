@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050505">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=60">
+  <link rel="stylesheet" href="./style.css?v=61">
 </head>
 <body>
   <section id="app-loader" class="app-loader" aria-live="polite" aria-label="Загрузка Altera">
@@ -221,6 +221,7 @@
     <div class="info-modal-dialog xrocket-choice-dialog">
       <div class="checkout-header"><div><span class="checkout-kicker">XROCKET</span><h2 id="xrocket-choice-title">Как оплатить?</h2></div><button id="xrocket-choice-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div>
       <p class="checkout-description">Счёт создан на нужную сумму. Выберите удобный способ оплаты.</p>
+      <div id="xrocket-choice-qr-panel" class="xrocket-choice-qr-panel" hidden><img id="xrocket-choice-qr" class="payment-qr" alt="QR-код для оплаты xRocket"><strong id="xrocket-choice-amount"></strong><span>Откройте камеру или сканер QR в кошельке</span></div>
       <div class="xrocket-choice-actions">
         <button id="xrocket-open-choice" class="primary-button" type="button">Перейти в xRocket</button>
         <button id="xrocket-qr-choice" class="secondary-button" type="button">Оплатить через QR-код</button>
@@ -230,6 +231,6 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button><button id="success-copy" class="secondary-button" type="button">Скопировать товар</button></div></div>
   </section>
-  <script src="./app.js?v=65"></script>
+  <script src="./app.js?v=66"></script>
 </body>
 </html>

@@ -24,6 +24,7 @@ let purchaseExpiryTimer = null;
 let currentBalance = null;
 let checkoutRequestKey = null;
 let audioContext = null;
+let xrocketChoice = null;
 
 function updateBootProgress(value, status) {
   bootProgress = Math.max(bootProgress, Math.min(100, value));
@@ -55,15 +56,16 @@ $("pay-balance").addEventListener("click", () => submitPurchase("balance"));
 $("pay-xrocket").addEventListener("click", () => submitPurchase("xrocket"));
 $("pay-stars").addEventListener("click", () => submitPurchase("stars"));
 $("waiting-open").addEventListener("click", () => pendingPayment && openPaymentLink(pendingPayment.pay_url));
-$("xrocket-choice-close").addEventListener("click", () => { $("xrocket-choice-modal").hidden = true; });
+$("xrocket-choice-close").addEventListener("click", () => { $("xrocket-choice-modal").hidden = true; xrocketChoice = null; });
 $("xrocket-open-choice").addEventListener("click", () => {
   $("xrocket-choice-modal").hidden = true;
-  if (pendingPayment?.pay_url) openPaymentLink(pendingPayment.pay_url);
+  if (xrocketChoice?.payUrl) openPaymentLink(xrocketChoice.payUrl);
 });
 $("xrocket-qr-choice").addEventListener("click", () => {
-  $("xrocket-choice-modal").hidden = true;
-  $("payment-waiting").scrollIntoView({ behavior: "smooth", block: "center" });
-  $("payment-qr").focus?.();
+  if (!xrocketChoice?.payUrl) return;
+  $("xrocket-choice-qr").src = `https://quickchart.io/qr?size=260&text=${encodeURIComponent(xrocketChoice.payUrl)}`;
+  $("xrocket-choice-amount").textContent = `${Number(xrocketChoice.amount || 0).toFixed(2)} USDT`;
+  $("xrocket-choice-qr-panel").hidden = false;
 });
 $("waiting-copy").addEventListener("click", () => pendingPayment && copyText(pendingPayment.pay_url)
   .then(() => showToast("Ссылка скопирована")).catch(() => showToast("Не удалось скопировать ссылку", "error")));
@@ -844,6 +846,7 @@ function submitPurchase(payment) {
 }
 
 function showPaymentWaiting(result) {
+  $("xrocket-choice-qr-panel").hidden = true;
   $("payment-waiting").hidden = false;
   $("payment-options").hidden = true;
   $("waiting-order").textContent = result.order_number
@@ -873,6 +876,7 @@ function showPaymentWaiting(result) {
   $("waiting-check").disabled = false;
   $("waiting-check").classList.remove("is-loading");
   $("waiting-expiry").textContent = "Счёт действует 30 минут";
+  xrocketChoice = { payUrl: result.pay_url, amount: result.amount };
   $("xrocket-choice-modal").hidden = false;
   $("xrocket-open-choice").focus();
 }
@@ -1292,7 +1296,9 @@ async function startDeposit() {
         }
       });
     } else {
-      openPaymentLink(result.pay_url);
+      xrocketChoice = { payUrl: result.pay_url, amount };
+      $("xrocket-choice-qr-panel").hidden = true;
+      $("xrocket-choice-modal").hidden = false;
       status.textContent = "Ожидаем оплату xRocket...";
       pollDeposit(result.invoice_id, amount);
     }
