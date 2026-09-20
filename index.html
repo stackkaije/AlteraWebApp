@@ -6,9 +6,15 @@
   <meta name="theme-color" content="#050505">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=54">
+  <link rel="stylesheet" href="./style.css?v=56">
 </head>
 <body>
+  <section id="app-loader" class="app-loader" aria-live="polite" aria-label="Загрузка Altera">
+    <img class="app-loader-logo" src="./assets/altera-logo-final.png" alt="Altera">
+    <div class="app-loader-brand">ALTERA</div>
+    <div class="app-loader-progress"><span id="app-loader-fill"></span></div>
+    <div class="app-loader-meta"><span id="app-loader-status">Подготавливаем приложение</span><strong id="app-loader-percent">0%</strong></div>
+  </section>
   <main class="app">
     <nav class="tabs" aria-label="Разделы магазина">
       <button class="tab active" data-view="catalog-view" aria-controls="catalog-view"><span>Каталог</span></button>
@@ -20,7 +26,7 @@
     <section id="catalog-view" class="view active-view">
       <header class="topbar">
         <div>
-          <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">A</span><span class="brand-name">ALTERA</span></div>
+          <div class="brand-lockup"><img class="brand-mark" src="./assets/altera-logo-final.png" alt="Altera"><span class="brand-name">ALTERA</span></div>
           <h1>Каталог товаров</h1>
         </div>
         <button id="how-it-works-button" class="header-help" type="button" aria-label="Как работает магазин">Как это работает?</button>
@@ -203,6 +209,6 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button><button id="success-copy" class="secondary-button" type="button">Скопировать товар</button></div></div>
   </section>
-  <script src="./app.js?v=59"></script>
+  <script src="./app.js?v=61"></script>
 </body>
 </html>

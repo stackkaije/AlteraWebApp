@@ -6,6 +6,7 @@ const catalogNode = $("catalog");
 const statusNode = $("status");
 const checkoutNode = $("checkout");
 const quantityNode = $("quantity");
+let bootProgress = 0;
 let categories = [];
 let cart = loadCart();
 let selected = null;
@@ -22,6 +23,23 @@ let purchasePollTimer = null;
 let purchaseExpiryTimer = null;
 let currentBalance = null;
 let checkoutRequestKey = null;
+
+function updateBootProgress(value, status) {
+  bootProgress = Math.max(bootProgress, Math.min(100, value));
+  const fill = $("app-loader-fill");
+  const percent = $("app-loader-percent");
+  const statusNode = $("app-loader-status");
+  if (fill) fill.style.width = `${bootProgress}%`;
+  if (percent) percent.textContent = `${Math.round(bootProgress)}%`;
+  if (statusNode && status) statusNode.textContent = status;
+}
+
+function finishBoot() {
+  updateBootProgress(100, "Готово");
+  setTimeout(() => $("app-loader")?.classList.add("is-hidden"), 450);
+}
+
+updateBootProgress(10, "Запускаем Altera");
 
 tg?.ready();
 tg?.expand();
@@ -945,6 +963,7 @@ async function loadProfile() {
   if (!initData) {
     $("profile-card").innerHTML = `<div class="empty-state">Профиль доступен при открытии приложения из Telegram.</div>`;
     $("referral-card").innerHTML = `<div class="empty-state">Реферальная программа доступна из Telegram.</div>`;
+    updateBootProgress(88, "Интерфейс готов");
     return;
   }
   try {
@@ -964,10 +983,12 @@ async function loadProfile() {
     $("referral-card").innerHTML = `<div class="profile-card-heading"><strong>Реферальная программа</strong><span>Получайте 10% с покупок друзей</span></div>
       <div class="referral-link"><code>${escapeHtml(referralLink || "Ссылка недоступна")}</code><button class="copy-button" type="button" data-copy="${escapeHtml(referralLink)}" ${referralLink ? "" : "disabled"}>Копировать</button></div>
       <div class="referral-stats"><div><strong>${Number(referrals.count || 0)}</strong><span>рефералов</span></div><div><strong>${Number(referrals.earnings || 0).toFixed(2)}</strong><span>заработано USDT</span></div></div>`;
+    updateBootProgress(88, "Профиль загружен");
   } catch (error) {
     currentBalance = null;
     $("profile-card").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
     $("referral-card").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+    updateBootProgress(88, "Интерфейс готов");
   }
 }
 
@@ -1190,6 +1211,7 @@ function loadCart() { try { return JSON.parse(localStorage.getItem("altera-cart"
 function saveCart() { localStorage.setItem("altera-cart", JSON.stringify(cart)); }
 
 async function loadCatalog() {
+  updateBootProgress(24, "Загружаем каталог");
   renderCatalogSkeleton();
   try {
     restoreCatalogFilters();
@@ -1209,15 +1231,16 @@ async function loadCatalog() {
     saveCart();
     renderCatalog();
     renderCart();
+    updateBootProgress(74, "Каталог загружен");
   } catch (error) {
     statusNode.hidden = false;
     statusNode.innerHTML = `Не удалось загрузить каталог. <button class="text-button inline-retry" type="button" data-retry="catalog">Повторить</button>`;
     catalogNode.innerHTML = `<div class="empty-state"><span class="empty-illustration" aria-hidden="true">!</span><strong>Не удалось загрузить товары</strong><span>${escapeHtml(error.message || "Проверьте соединение и попробуйте ещё раз.")}</span></div>`;
+    updateBootProgress(74, "Каталог готов");
   }
 }
 
-loadCatalog();
-loadProfile();
+Promise.all([loadCatalog(), loadProfile()]).then(finishBoot);
 
 function saveCatalogFilters() {
   localStorage.setItem("altera-catalog-filters", JSON.stringify({
