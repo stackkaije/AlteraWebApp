@@ -151,6 +151,20 @@ document.querySelectorAll("[data-theme-choice]").forEach((button) => button.addE
   localStorage.setItem("altera-theme", mode);
   applyTheme(mode);
 }));
+function applyGlassPreference(enabled) {
+  document.documentElement.classList.toggle("no-glass", !enabled);
+  const toggle = $("glass-toggle");
+  if (!toggle) return;
+  toggle.setAttribute("aria-checked", String(enabled));
+  toggle.classList.toggle("is-on", enabled);
+  toggle.querySelector("b").textContent = enabled ? "Вкл." : "Выкл.";
+}
+$("glass-toggle").addEventListener("click", () => {
+  const enabled = $("glass-toggle").getAttribute("aria-checked") !== "true";
+  localStorage.setItem("altera-glass", String(enabled));
+  applyGlassPreference(enabled);
+});
+applyGlassPreference(localStorage.getItem("altera-glass") !== "false");
 document.body.addEventListener("click", async (event) => {
   const viewButton = event.target.closest("[data-view]");
   if (viewButton && !viewButton.classList.contains("tab")) showView(viewButton.dataset.view);
@@ -813,7 +827,26 @@ function showSuccessScreen(orderNumber, itemText) {
   $("purchase-success").hidden = false;
   $("purchase-success").classList.remove("success-visible");
   requestAnimationFrame(() => $("purchase-success").classList.add("success-visible"));
+  launchConfetti();
   $("success-close").focus();
+}
+
+function launchConfetti() {
+  const layer = document.createElement("div");
+  layer.className = "confetti-layer";
+  const colors = ["#7ce7d3", "#20aaf0", "#ffffff", "#f4d37c", "#9b8cff"];
+  for (let index = 0; index < 34; index += 1) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = `${35 + Math.random() * 30}%`;
+    piece.style.background = colors[index % colors.length];
+    piece.style.setProperty("--x", `${(Math.random() - .5) * 80}vw`);
+    piece.style.setProperty("--r", `${Math.round((Math.random() - .5) * 900)}deg`);
+    piece.style.animationDelay = `${Math.random() * .22}s`;
+    layer.appendChild(piece);
+  }
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 2200);
 }
 
 function closeSuccess() {
