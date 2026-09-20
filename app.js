@@ -55,6 +55,16 @@ $("pay-balance").addEventListener("click", () => submitPurchase("balance"));
 $("pay-xrocket").addEventListener("click", () => submitPurchase("xrocket"));
 $("pay-stars").addEventListener("click", () => submitPurchase("stars"));
 $("waiting-open").addEventListener("click", () => pendingPayment && openPaymentLink(pendingPayment.pay_url));
+$("xrocket-choice-close").addEventListener("click", () => { $("xrocket-choice-modal").hidden = true; });
+$("xrocket-open-choice").addEventListener("click", () => {
+  $("xrocket-choice-modal").hidden = true;
+  if (pendingPayment?.pay_url) openPaymentLink(pendingPayment.pay_url);
+});
+$("xrocket-qr-choice").addEventListener("click", () => {
+  $("xrocket-choice-modal").hidden = true;
+  $("payment-waiting").scrollIntoView({ behavior: "smooth", block: "center" });
+  $("payment-qr").focus?.();
+});
 $("waiting-copy").addEventListener("click", () => pendingPayment && copyText(pendingPayment.pay_url)
   .then(() => showToast("Ссылка скопирована")).catch(() => showToast("Не удалось скопировать ссылку", "error")));
 $("waiting-check").addEventListener("click", () => pendingPayment && checkPurchasePayment(true));
@@ -800,7 +810,6 @@ function submitPurchase(payment) {
         pendingPayment = result;
         showPaymentWaiting(result);
         showToast("Счёт xRocket создан");
-        openPaymentLink(result.pay_url);
         pollPurchasePayment();
         return;
       }
@@ -864,6 +873,8 @@ function showPaymentWaiting(result) {
   $("waiting-check").disabled = false;
   $("waiting-check").classList.remove("is-loading");
   $("waiting-expiry").textContent = "Счёт действует 30 минут";
+  $("xrocket-choice-modal").hidden = false;
+  $("xrocket-open-choice").focus();
 }
 
 function showSuccessScreen(orderNumber, itemText) {
