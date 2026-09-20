@@ -247,7 +247,12 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .form-status { margin: 8px 0 0; }
 .form-status:empty { display: none; }
 .empty-state { padding: 36px 16px; color: var(--muted); text-align: center; border: 1px dashed var(--line); border-radius: 14px; }
-.catalog-empty { display: grid; justify-items: center; gap: 9px; }
+.catalog-empty, #cart-empty { display: grid; justify-items: center; gap: 9px; }
+#cart-empty { width: 100%; padding: 36px 20px; line-height: 1.45; }
+#cart-empty .empty-illustration { margin-bottom: 2px; }
+#cart-empty strong { display: block; font-size: 16px; line-height: 1.25; }
+#cart-empty > span:not(.empty-illustration) { max-width: 260px; }
+#cart-empty .secondary-button { margin-top: 5px; min-width: 178px; }
 .catalog-empty strong { color: var(--text); font-size: 16px; }
 .empty-state strong { color: var(--text); }
 .empty-illustration { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 2px; border-radius: 15px; background: linear-gradient(135deg, rgba(124,231,211,.18), rgba(155,140,255,.18)); color: var(--accent); font-size: 24px; }
