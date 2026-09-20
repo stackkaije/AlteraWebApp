@@ -381,15 +381,34 @@ function renderCatalog() {
   const recentlyViewed = viewedIds.map((id) => categories.find((item) => item.id === id)).filter(Boolean).slice(0, 3);
   const boughtIds = JSON.parse(localStorage.getItem("altera-bought-before") || "[]");
   const boughtBefore = boughtIds.map((id) => categories.find((item) => item.id === id)).filter(Boolean).slice(0, 3);
-  const featured = (title, items) => items.length ? `<section class="featured-section"><div class="section-heading"><h2>${title}</h2></div><div class="group-items">${items.map(cardTemplate).join("")}</div></section>` : "";
+  const hasActiveFilters = Boolean(query) || group !== "all" || stockFilter !== "all" || sort !== "default";
+  const featured = (title, items, usedIds) => {
+    const uniqueItems = items.filter((item) => !usedIds.has(item.id));
+    uniqueItems.forEach((item) => usedIds.add(item.id));
+    return uniqueItems.length ? `<section class="featured-section"><div class="section-heading"><h2>${title}</h2></div><div class="group-items">${uniqueItems.map(cardTemplate).join("")}</div></section>` : "";
+  };
   const categoryView = group !== "all"
     ? `<section class="catalog-group"><h2 class="group-title">${escapeHtml(groupTitle(group))}</h2><div class="group-items">${visible.map(cardTemplate).join("")}</div></section>`
-    : featured("Для вас", recentlyViewed.length ? recentlyViewed : popular) + featured("Вы покупали", boughtBefore) + featured("Популярное", popular) + featured("Новинки", newItems) + [...groups.entries()].map(([key, items]) => `
+    : hasActiveFilters
+      ? [...groups.entries()].map(([key, items]) => `
+    <section class="catalog-group">
+      <h2 class="group-title">${escapeHtml(groupTitle(key))}</h2>
+      <div class="group-items">${items.map(cardTemplate).join("")}</div>
+    </section>
+  `).join("")
+      : (() => {
+      const featuredIds = new Set();
+      return featured("Для вас", recentlyViewed.length ? recentlyViewed : popular, featuredIds)
+        + featured("Вы покупали", boughtBefore, featuredIds)
+        + featured("Популярное", popular, featuredIds)
+        + featured("Новинки", newItems, featuredIds)
+        + [...groups.entries()].map(([key, items]) => `
     <section class="catalog-group">
       <h2 class="group-title">${escapeHtml(groupTitle(key))}</h2>
       <div class="group-items">${items.map(cardTemplate).join("")}</div>
     </section>
   `).join("");
+    })();
   catalogNode.innerHTML = visible.length ? categoryView : `<div class="empty-state catalog-empty"><span class="empty-illustration" aria-hidden="true">⌕</span><strong>Ничего не нашли</strong><span>Попробуйте изменить запрос или сбросить фильтры.</span><button class="secondary-button" data-reset-filters type="button">Сбросить фильтры</button></div>`;
   statusNode.hidden = true;
 }
