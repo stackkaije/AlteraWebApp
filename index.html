@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050505">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=52">
+  <link rel="stylesheet" href="./style.css?v=53">
 </head>
 <body>
   <main class="app">
@@ -20,6 +20,7 @@
     <section id="catalog-view" class="view active-view">
       <header class="topbar">
         <div>
+          <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">A</span><span class="brand-name">ALTERA</span></div>
           <h1>Каталог товаров</h1>
         </div>
         <button id="how-it-works-button" class="header-help" type="button" aria-label="Как работает магазин">Как это работает?</button>
@@ -137,8 +138,10 @@
       <div class="section-heading"><div><h2>Корзина</h2></div></div>
       <section id="cart-list" class="cart-list"></section>
       <button id="cart-clear" class="text-button cart-clear" type="button">Очистить корзину</button>
-      <div id="cart-empty" class="empty-state">Корзина пока пуста.<br><button class="text-button" data-view="catalog-view">Перейти в каталог</button></div>
+      <div id="cart-empty" class="empty-state"><span class="empty-illustration" aria-hidden="true">🛒</span><strong>Корзина пока пуста</strong><span>Добавьте товары, чтобы оформить заказ.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>
       <div id="cart-summary" class="cart-summary" hidden>
+        <div class="cart-progress" aria-live="polite"><div class="cart-progress-heading"><span id="cart-progress-label">До бонуса</span><strong id="cart-progress-value"></strong></div><div class="progress-track"><span id="cart-progress-fill"></span></div></div>
+        <div class="cart-savings-row"><span>Ваша выгода</span><strong id="cart-savings">0.00 USDT</strong></div>
         <span>Итого</span><strong id="cart-total"></strong>
         <button id="cart-checkout" class="primary-button" type="button">Перейти к оплате</button>
       </div>
@@ -200,6 +203,6 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button><button id="success-copy" class="secondary-button" type="button">Скопировать товар</button></div></div>
   </section>
-  <script src="./app.js?v=58"></script>
+  <script src="./app.js?v=59"></script>
 </body>
 </html>

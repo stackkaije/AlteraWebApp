@@ -104,11 +104,28 @@ document.querySelectorAll(".provider-option").forEach((button) => button.addEven
 }));
 $("deposit-submit").addEventListener("click", startDeposit);
 document.body.addEventListener("click", async (event) => {
+  const rippleTarget = event.target.closest("button:not([disabled]), .card");
+  if (rippleTarget && !rippleTarget.classList.contains("tab")) {
+    const ripple = document.createElement("span");
+    ripple.className = "ripple";
+    const rect = rippleTarget.getBoundingClientRect();
+    ripple.style.left = `${event.clientX - rect.left}px`;
+    ripple.style.top = `${event.clientY - rect.top}px`;
+    rippleTarget.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 550);
+  }
   const copyButton = event.target.closest("[data-copy]");
   if (!copyButton) return;
   copyText(copyButton.dataset.copy)
     .then(() => showToast("Ссылка скопирована"))
     .catch(() => showToast("Не удалось скопировать ссылку", "error"));
+});
+document.body.addEventListener("click", (event) => {
+  const retry = event.target.closest("[data-retry]");
+  if (!retry) return;
+  if (retry.dataset.retry === "history") loadHistory();
+  if (retry.dataset.retry === "favorites") loadFavorites();
+  if (retry.dataset.retry === "catalog") loadCatalog();
 });
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => showView(tab.dataset.view)));
 document.querySelectorAll("[data-theme-choice]").forEach((button) => button.addEventListener("click", () => {
@@ -247,7 +264,9 @@ function applyTheme(mode) {
   const theme = mode === "telegram"
     ? (tg?.colorScheme || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"))
     : mode;
+  document.documentElement.classList.add("theme-switching");
   document.documentElement.dataset.theme = theme;
+  setTimeout(() => document.documentElement.classList.remove("theme-switching"), 320);
   document.querySelectorAll("[data-theme-choice]").forEach((button) => {
     button.classList.toggle("active", button.dataset.themeChoice === mode);
   });
@@ -371,7 +390,7 @@ function renderCatalog() {
       <div class="group-items">${items.map(cardTemplate).join("")}</div>
     </section>
   `).join("");
-  catalogNode.innerHTML = visible.length ? categoryView : `<div class="empty-state catalog-empty"><strong>Ничего не нашли</strong><span>Попробуйте изменить запрос или сбросить фильтры.</span><button class="secondary-button" data-reset-filters type="button">Сбросить фильтры</button></div>`;
+  catalogNode.innerHTML = visible.length ? categoryView : `<div class="empty-state catalog-empty"><span class="empty-illustration" aria-hidden="true">⌕</span><strong>Ничего не нашли</strong><span>Попробуйте изменить запрос или сбросить фильтры.</span><button class="secondary-button" data-reset-filters type="button">Сбросить фильтры</button></div>`;
   statusNode.hidden = true;
 }
 
@@ -425,7 +444,7 @@ function cardTemplate(item) {
   const reviews = Number(item.reviews_count || 0);
   const badges = (item.badges || []).slice(0, 2).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("");
   return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}">
-    <div class="card-top"><span class="pill">${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
+    <div class="card-top"><span class="pill"><span class="category-icon" aria-hidden="true">${groupIcon(item.group || "other")}</span>${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
     ${badges ? `<div class="badges">${badges}</div>` : ""}
     <h2>${escapeHtml(item.name)}</h2>
     <p class="description">${escapeHtml(item.description || "Моментальная выдача после оплаты")}</p>
@@ -438,6 +457,9 @@ function cardTemplate(item) {
 
 function groupTitle(group) {
   return { l0gu_1970: "Мобильные операторы", gy_1970: "Госуслуги", tbank: "Банковские аккаунты", other: "Другие товары" }[group] || group;
+}
+function groupIcon(group) {
+  return { l0gu_1970: "⌁", gy_1970: "◈", tbank: "₽", other: "✦" }[group] || "✦";
 }
 
 function handleCatalogClick(event) {
@@ -752,6 +774,8 @@ function showSuccessScreen(orderNumber, itemText) {
   $("success-order").textContent = orderNumber ? `Заказ ${orderNumber} оплачен и выдан.` : "Заказ оплачен.";
   $("success-items").textContent = itemText || "Товар доступен в разделе «Покупки».";
   $("purchase-success").hidden = false;
+  $("purchase-success").classList.remove("success-visible");
+  requestAnimationFrame(() => $("purchase-success").classList.add("success-visible"));
   $("success-close").focus();
 }
 
@@ -827,6 +851,11 @@ function addToCart(id, count = 1) {
   else cart.push({ id, quantity: Math.min(item.stock, count), price: Number(item.price) });
   saveCart();
   renderCart();
+  const card = document.querySelector(`[data-product-id="${id}"]`);
+  card?.classList.remove("cart-added");
+  requestAnimationFrame(() => card?.classList.add("cart-added"));
+  showToast(`${item.name} добавлен в корзину`, "success");
+  haptic("light");
 }
 
 function handleCartClick(event) {
@@ -852,7 +881,7 @@ function renderCart() {
     const priceChanged = line.price != null && Number(line.price) !== Number(item.price);
     const stockChanged = item.stock > 0 && line.quantity > item.stock;
     return `<article class="cart-line ${unavailable ? "is-unavailable" : ""}"><div><strong>${escapeHtml(item.name)}</strong><span>${Number(item.price).toFixed(2)} USDT</span>${priceChanged ? `<em class="cart-warning">Цена изменилась с ${Number(line.price).toFixed(2)} USDT</em>` : ""}${stockChanged ? `<em class="cart-warning">Доступно только ${item.stock} шт.</em>` : ""}${unavailable ? `<em class="cart-warning">Нет в наличии</em>` : ""}</div>
-      <div class="cart-controls"><button data-action="minus" data-id="${item.id}" aria-label="Уменьшить количество">−</button><b>${line.quantity}</b><button data-action="plus" data-id="${item.id}" ${unavailable ? "disabled" : ""} aria-label="Увеличить количество">+</button><button class="remove" data-action="remove" data-id="${item.id}">Удалить</button></div></article>`;
+      <div class="cart-controls"><button data-action="minus" data-id="${item.id}" aria-label="Уменьшить количество">−</button><b class="quantity-value">${line.quantity}</b><button data-action="plus" data-id="${item.id}" ${unavailable ? "disabled" : ""} aria-label="Увеличить количество">+</button><button class="remove" data-action="remove" data-id="${item.id}">Удалить</button></div></article>`;
   }).join("");
   const hasItems = cart.length > 0;
   $("cart-empty").hidden = hasItems;
@@ -862,8 +891,15 @@ function renderCart() {
     return sum + (item ? Number(item.price) * line.quantity : 0);
   }, 0);
   const total = baseCartTotal();
-  $("cart-total").innerHTML = `${total.toFixed(2)} USDT${baseTotal > total ? ` <small class="saving">Экономия ${(baseTotal - total).toFixed(2)} USDT</small>` : ""}`;
+  const savings = Math.max(0, baseTotal - total);
+  $("cart-total").innerHTML = `${total.toFixed(2)} USDT`;
+  $("cart-savings").textContent = `${savings.toFixed(2)} USDT`;
   const count = cart.reduce((sum, line) => sum + line.quantity, 0);
+  const bonusTarget = 10;
+  const progress = Math.min(100, count / bonusTarget * 100);
+  $("cart-progress-fill").style.width = `${progress}%`;
+  $("cart-progress-label").textContent = count >= bonusTarget ? "Бонус активирован" : "До скидки 20%";
+  $("cart-progress-value").textContent = count >= bonusTarget ? "−20%" : `ещё ${bonusTarget - count} ${plural(bonusTarget - count, "товар", "товара", "товаров")}`;
   $("cart-count").textContent = count;
   $("cart-count").hidden = count < 1;
   $("cart-bar").hidden = count < 1 || !$("catalog-view").classList.contains("active-view");
@@ -928,10 +964,10 @@ async function loadHistory() {
       if (entry.cat_id && (status === "delivered" || status === "fulfilled")) bought.push(entry.cat_id);
       const method = entry.payment_method === "xrocket" ? "xRocket" : entry.payment_method === "stars" ? "Telegram Stars" : "Баланс";
       return `<article class="history-item"><div><strong>${escapeHtml(entry.product)}</strong><span>${escapeHtml(entry.item_preview || "Товар выдан")}</span><span class="history-meta"><b>${escapeHtml(entry.order_number || "Заказ")}</b> · ${method} · ${Number(entry.amount || 0).toFixed(2)} USDT</span></div><div class="history-actions"><time>${formatDate(entry.date)}</time><span class="order-status status-${escapeHtml(status)}">${statusLabel(status)}</span><div class="history-buttons"><button class="text-button" data-order-action="receive" data-history-id="${entry.id}" data-order-number="${escapeHtml(entry.order_number || "")}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Получить товар</button><button class="text-button" data-order-action="copy" data-history-id="${entry.id}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Скопировать товар</button><button class="text-button" data-repeat-cat="${entry.cat_id || ""}" ${entry.cat_id ? "" : "disabled"}>Повторить покупку</button><button class="text-button support-button" data-order-action="support" data-order-number="${escapeHtml(entry.order_number || "")}">Проблема с заказом</button></div></div></article>`;
-    }).join("") : `<div class="empty-state">Покупок пока нет.</div>`;
+    }).join("") : `<div class="empty-state"><span class="empty-illustration" aria-hidden="true">▤</span><strong>Покупок пока нет</strong><span>Ваши выданные товары появятся здесь.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>`;
     localStorage.setItem("altera-bought-before", JSON.stringify([...new Set(bought)].slice(0, 12)));
     $("history-status").textContent = data.history?.length ? `${data.history.length} записей` : "";
-  } catch (error) { $("history-status").textContent = error.message; }
+  } catch (error) { $("history-status").innerHTML = `${escapeHtml(error.message)} <button class="text-button inline-retry" type="button" data-retry="history">Повторить</button>`; }
 }
 
 async function loadFavorites() {
@@ -961,7 +997,7 @@ async function loadFavorites() {
       : `<div class="empty-state">Сохранённых товаров пока нет.<br>Нажмите ♡ в карточке товара.</div>`;
     $("favorites-status").hidden = visible.length > 0;
     $("favorites-status").textContent = visible.length ? "" : "Нет подходящих товаров";
-  } catch (error) { $("favorites-status").hidden = false; $("favorites-status").textContent = error.message; }
+  } catch (error) { $("favorites-status").hidden = false; $("favorites-status").innerHTML = `${escapeHtml(error.message)} <button class="text-button inline-retry" type="button" data-retry="favorites">Повторить</button>`; }
 }
 
 async function toggleFavorite(catId, button) {
@@ -1154,7 +1190,11 @@ async function loadCatalog() {
     saveCart();
     renderCatalog();
     renderCart();
-  } catch { statusNode.hidden = false; statusNode.textContent = "Не удалось загрузить каталог."; }
+  } catch (error) {
+    statusNode.hidden = false;
+    statusNode.innerHTML = `Не удалось загрузить каталог. <button class="text-button inline-retry" type="button" data-retry="catalog">Повторить</button>`;
+    catalogNode.innerHTML = `<div class="empty-state"><span class="empty-illustration" aria-hidden="true">!</span><strong>Не удалось загрузить товары</strong><span>${escapeHtml(error.message || "Проверьте соединение и попробуйте ещё раз.")}</span></div>`;
+  }
 }
 
 loadCatalog();
