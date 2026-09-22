@@ -62,7 +62,6 @@ $("xrocket-open-choice").addEventListener("click", () => {
   if (xrocketChoice?.payUrl) openPaymentLink(xrocketChoice.payUrl);
 });
 $("xrocket-qr-choice").addEventListener("click", () => {
-  $("xrocket-choice-modal").hidden = true;
   if (xrocketChoice?.mode === "purchase") {
     checkPurchasePayment(true);
   } else if (xrocketChoice?.mode === "deposit") {
@@ -946,12 +945,19 @@ async function checkPurchasePayment(manual = false) {
       status.textContent = "Счёт просрочен. Создайте новый заказ.";
       $("waiting-indicator").textContent = "● Счёт закрыт";
       $("waiting-check").disabled = true;
+      if (manual) showToast("Счёт просрочен или отменён", "error");
       terminal = true;
       return true;
     }
-    if (manual) status.textContent = "Оплата ещё не поступила.";
+    if (manual) {
+      status.textContent = "Оплата ещё не поступила.";
+      showToast("Платёж ещё не поступил");
+    }
   } catch (error) {
-    if (manual) status.textContent = error.message;
+    if (manual) {
+      status.textContent = error.message;
+      showToast(error.message, "error");
+    }
   } finally {
     if (manual) {
       checkButton.disabled = terminal;
@@ -1358,11 +1364,18 @@ async function checkDepositPayment(manual = false) {
     if (result.status === "expired" || result.status === "cancelled") {
       clearInterval(depositPollTimer);
       status.textContent = "Счёт просрочен или отменён. Создайте новый.";
+      if (manual) showToast("Счёт просрочен или отменён", "error");
       return true;
     }
-    if (manual) status.textContent = "Платеж ещё не поступил.";
+    if (manual) {
+      status.textContent = "Платеж ещё не поступил.";
+      showToast("Платёж ещё не поступил");
+    }
   } catch (error) {
-    if (manual) status.textContent = error.message;
+    if (manual) {
+      status.textContent = error.message;
+      showToast(error.message, "error");
+    }
   }
   return false;
 }
