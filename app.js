@@ -62,6 +62,14 @@ $("xrocket-open-choice").addEventListener("click", () => {
   if (xrocketChoice?.payUrl) openPaymentLink(xrocketChoice.payUrl);
 });
 $("xrocket-qr-choice").addEventListener("click", () => {
+  if (xrocketChoice && !xrocketChoice.qrShown) {
+    $("xrocket-choice-qr").src = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(xrocketChoice.payUrl)}`;
+    $("xrocket-choice-amount").textContent = `${Number(xrocketChoice.amount || 0).toFixed(2)} USDT`;
+    $("xrocket-choice-qr-panel").hidden = false;
+    xrocketChoice.qrShown = true;
+    $("xrocket-qr-choice").textContent = "Проверить платеж";
+    return;
+  }
   if (xrocketChoice?.mode === "purchase") {
     checkPurchasePayment(true);
   } else if (xrocketChoice?.mode === "deposit") {
@@ -847,9 +855,8 @@ function submitPurchase(payment) {
 }
 
 function showPaymentWaiting(result) {
-  $("xrocket-choice-qr").src = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(result.pay_url)}`;
-  $("xrocket-choice-amount").textContent = `${Number(result.amount || 0).toFixed(2)} USDT`;
-  $("xrocket-choice-qr-panel").hidden = false;
+  $("xrocket-choice-qr-panel").hidden = true;
+  $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
   $("payment-waiting").hidden = false;
   $("payment-options").hidden = true;
   $("waiting-order").textContent = result.order_number
@@ -879,7 +886,7 @@ function showPaymentWaiting(result) {
   $("waiting-check").disabled = false;
   $("waiting-check").classList.remove("is-loading");
   $("waiting-expiry").textContent = "Счёт действует 30 минут";
-  xrocketChoice = { payUrl: result.pay_url, amount: result.amount, mode: "purchase" };
+  xrocketChoice = { payUrl: result.pay_url, amount: result.amount, mode: "purchase", qrShown: false };
   $("xrocket-choice-modal").hidden = false;
   $("xrocket-open-choice").focus();
 }
@@ -1306,10 +1313,9 @@ async function startDeposit() {
         }
       });
     } else {
-      xrocketChoice = { payUrl: result.pay_url, amount, invoiceId: result.invoice_id, mode: "deposit" };
-      $("xrocket-choice-qr").src = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(result.pay_url)}`;
-      $("xrocket-choice-amount").textContent = `${amount.toFixed(2)} USDT`;
-      $("xrocket-choice-qr-panel").hidden = false;
+      xrocketChoice = { payUrl: result.pay_url, amount, invoiceId: result.invoice_id, mode: "deposit", qrShown: false };
+      $("xrocket-choice-qr-panel").hidden = true;
+      $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
       $("xrocket-choice-modal").hidden = false;
       status.textContent = "Ожидаем оплату xRocket...";
       pollDeposit(result.invoice_id, amount);
