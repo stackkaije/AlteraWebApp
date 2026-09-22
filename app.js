@@ -22,6 +22,7 @@ let checkoutReturnFocus = null;
 let purchasePollTimer = null;
 let purchaseExpiryTimer = null;
 let currentBalance = null;
+let userPurchaseCount = 0;
 let checkoutRequestKey = null;
 let audioContext = null;
 let xrocketChoice = null;
@@ -475,7 +476,10 @@ function renderCatalog() {
   `).join("")
       : (() => {
       const featuredIds = new Set();
-      return featured("Для вас", recentlyViewed.length ? recentlyViewed : popular, featuredIds)
+      const personalized = userPurchaseCount >= 3
+        ? featured("Для вас", recentlyViewed.length ? recentlyViewed : popular, featuredIds)
+        : "";
+      return personalized
         + featured("Вы покупали", boughtBefore, featuredIds)
         + featured("Популярное", popular, featuredIds)
         + featured("Новинки", newItems, featuredIds)
@@ -944,6 +948,7 @@ async function checkPurchasePayment(manual = false) {
       if (purchasePollTimer) clearInterval(purchasePollTimer);
       if (purchaseExpiryTimer) clearInterval(purchaseExpiryTimer);
       loadHistory();
+      loadProfile();
       loadCatalog();
       haptic("success");
       return true;
@@ -1082,6 +1087,7 @@ async function loadProfile() {
   try {
     const data = await api("/api/profile");
     currentBalance = Number(data.balance);
+    userPurchaseCount = Number(data.purchases || 0);
     const user = data.user || {};
     const photoUrl = String(user.photo_url || "").trim();
     const avatarFallback = escapeHtml((user.first_name || user.username || "?").slice(0, 1).toUpperCase());
@@ -1096,6 +1102,7 @@ async function loadProfile() {
     $("referral-card").innerHTML = `<div class="profile-card-heading"><strong>Реферальная программа</strong><span>Получайте 10% с покупок друзей</span></div>
       <div class="referral-link"><code>${escapeHtml(referralLink || "Ссылка недоступна")}</code><button class="copy-button" type="button" data-copy="${escapeHtml(referralLink)}" ${referralLink ? "" : "disabled"}>Копировать</button></div>
       <div class="referral-stats"><div><strong>${Number(referrals.count || 0)}</strong><span>рефералов</span></div><div><strong>${Number(referrals.earnings || 0).toFixed(2)}</strong><span>заработано USDT</span></div></div>`;
+    renderCatalog();
     updateBootProgress(88, "Профиль загружен");
   } catch (error) {
     currentBalance = null;
