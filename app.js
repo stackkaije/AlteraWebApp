@@ -62,10 +62,12 @@ $("xrocket-open-choice").addEventListener("click", () => {
   if (xrocketChoice?.payUrl) openPaymentLink(xrocketChoice.payUrl);
 });
 $("xrocket-qr-choice").addEventListener("click", () => {
-  if (!xrocketChoice?.payUrl) return;
-  $("xrocket-choice-qr").src = `https://quickchart.io/qr?size=260&text=${encodeURIComponent(xrocketChoice.payUrl)}`;
-  $("xrocket-choice-amount").textContent = `${Number(xrocketChoice.amount || 0).toFixed(2)} USDT`;
-  $("xrocket-choice-qr-panel").hidden = false;
+  $("xrocket-choice-modal").hidden = true;
+  if (xrocketChoice?.mode === "purchase") {
+    checkPurchasePayment(true);
+  } else if (xrocketChoice?.mode === "deposit") {
+    checkDepositPayment(true);
+  }
 });
 $("waiting-copy").addEventListener("click", () => pendingPayment && copyText(pendingPayment.pay_url)
   .then(() => showToast("Ссылка скопирована")).catch(() => showToast("Не удалось скопировать ссылку", "error")));
@@ -846,7 +848,9 @@ function submitPurchase(payment) {
 }
 
 function showPaymentWaiting(result) {
-  $("xrocket-choice-qr-panel").hidden = true;
+  $("xrocket-choice-qr").src = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(result.pay_url)}`;
+  $("xrocket-choice-amount").textContent = `${Number(result.amount || 0).toFixed(2)} USDT`;
+  $("xrocket-choice-qr-panel").hidden = false;
   $("payment-waiting").hidden = false;
   $("payment-options").hidden = true;
   $("waiting-order").textContent = result.order_number
@@ -876,7 +880,7 @@ function showPaymentWaiting(result) {
   $("waiting-check").disabled = false;
   $("waiting-check").classList.remove("is-loading");
   $("waiting-expiry").textContent = "Счёт действует 30 минут";
-  xrocketChoice = { payUrl: result.pay_url, amount: result.amount };
+  xrocketChoice = { payUrl: result.pay_url, amount: result.amount, mode: "purchase" };
   $("xrocket-choice-modal").hidden = false;
   $("xrocket-open-choice").focus();
 }
@@ -1296,8 +1300,10 @@ async function startDeposit() {
         }
       });
     } else {
-      xrocketChoice = { payUrl: result.pay_url, amount };
-      $("xrocket-choice-qr-panel").hidden = true;
+      xrocketChoice = { payUrl: result.pay_url, amount, invoiceId: result.invoice_id, mode: "deposit" };
+      $("xrocket-choice-qr").src = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(result.pay_url)}`;
+      $("xrocket-choice-amount").textContent = `${amount.toFixed(2)} USDT`;
+      $("xrocket-choice-qr-panel").hidden = false;
       $("xrocket-choice-modal").hidden = false;
       status.textContent = "Ожидаем оплату xRocket...";
       pollDeposit(result.invoice_id, amount);
@@ -1333,6 +1339,32 @@ function pollDeposit(invoiceId, amount) {
       $("deposit-status").textContent = error.message;
     }
   }, 4000);
+}
+async function checkDepositPayment(manual = false) {
+  if (!xrocketChoice?.invoiceId) return false;
+  const status = $("deposit-status");
+  if (manual) status.textContent = "Проверяем оплату...";
+  try {
+    const result = await api(`/api/deposit/status?invoice_id=${encodeURIComponent(xrocketChoice.invoiceId)}`);
+    if (result.status === "paid") {
+      clearInterval(depositPollTimer);
+      status.textContent = "Платеж поступил. Баланс пополнен.";
+      showToast(`Баланс пополнен на ${Number(xrocketChoice.amount || 0).toFixed(2)} USDT`);
+      playInterfaceSound("bonus");
+      loadProfile();
+      xrocketChoice = null;
+      return true;
+    }
+    if (result.status === "expired" || result.status === "cancelled") {
+      clearInterval(depositPollTimer);
+      status.textContent = "Счёт просрочен или отменён. Создайте новый.";
+      return true;
+    }
+    if (manual) status.textContent = "Платеж ещё не поступил.";
+  } catch (error) {
+    if (manual) status.textContent = error.message;
+  }
+  return false;
 }
 function plural(value, one, few, many) { const n = Math.abs(value) % 100; return (n % 10 === 1 && n !== 11) ? one : (n % 10 >= 2 && n % 10 <= 4 && (n < 10 || n >= 20)) ? few : many; }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char])); }

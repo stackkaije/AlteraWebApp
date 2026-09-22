@@ -329,7 +329,7 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .history-buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 9px; }
 .support-button { color: var(--danger); }
 .checkout { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: calc(18px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left)); background: var(--overlay); animation: fade-in .18s ease both; }
-.checkout-dialog { width: min(100%, 540px); max-height: 92vh; overflow-y: auto; padding: 22px; background: #111113; border: 1px solid #36363c; border-radius: 20px; box-shadow: 0 25px 80px #000; }
+.checkout-dialog { width: min(100%, 540px); max-height: min(92vh, 760px); overflow-y: auto; overscroll-behavior: contain; padding: 22px; background: #111113; border: 1px solid #36363c; border-radius: 20px; box-shadow: 0 25px 80px #000; }
 .checkout-header { display: flex; justify-content: space-between; gap: 15px; align-items: flex-start; }
 .checkout-kicker { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; }
 .checkout h2 { margin: 5px 0 0; font-size: 24px; }
@@ -365,12 +365,12 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .waiting-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .waiting-actions button:first-child { grid-column: 1 / -1; }
 .info-modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: var(--overlay); }
-.info-modal-dialog { width: min(100%, 520px); padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 25px 80px #0008; }
+.info-modal-dialog { width: min(100%, 520px); max-height: min(90vh, 700px); overflow-y: auto; overscroll-behavior: contain; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 25px 80px #0008; }
 .info-modal .checkout-header { align-items: center; }
 .info-modal-dialog > .checkout-header { margin-bottom: 14px; }
 .xrocket-choice-dialog { max-width: 420px; }
 .xrocket-choice-qr-panel { display: grid; justify-items: center; gap: 8px; margin: 16px 0 4px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); text-align: center; }
-.xrocket-choice-qr-panel .payment-qr { width: 220px; height: 220px; margin: 0; }
+.xrocket-choice-qr-panel .payment-qr { width: min(220px, 42vh); height: min(220px, 42vh); margin: 0; }
 .xrocket-choice-qr-panel span { color: var(--muted); font-size: 11px; }
 .xrocket-choice-actions { display: grid; gap: 9px; margin-top: 18px; }
 .xrocket-choice-actions button { width: 100%; min-height: 46px; }
