@@ -25,6 +25,8 @@ let userPurchaseCount = 0;
 let checkoutRequestKey = null;
 let audioContext = null;
 let xrocketChoice = null;
+let toastTimeout = null;
+let toastRemovalTimeout = null;
 
 tg?.ready();
 tg?.expand();
@@ -1204,14 +1206,21 @@ function playInterfaceSound(kind) {
 function showToast(message, type = "default") {
   const container = $("toast-container");
   if (!container) return;
-  const toast = document.createElement("div");
+  clearTimeout(toastTimeout);
+  clearTimeout(toastRemovalTimeout);
+  const toast = container.querySelector(".toast") || document.createElement("div");
+  container.querySelectorAll(".toast").forEach((existingToast) => {
+    if (existingToast !== toast) existingToast.remove();
+  });
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
-  container.appendChild(toast);
+  if (!toast.isConnected) container.appendChild(toast);
+  toast.classList.remove("toast-visible");
+  void toast.offsetWidth;
   requestAnimationFrame(() => toast.classList.add("toast-visible"));
-  setTimeout(() => {
+  toastTimeout = setTimeout(() => {
     toast.classList.remove("toast-visible");
-    setTimeout(() => toast.remove(), 220);
+    toastRemovalTimeout = setTimeout(() => toast.remove(), 220);
   }, 2600);
 }
 async function copyText(value) {
