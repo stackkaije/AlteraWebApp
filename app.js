@@ -10,6 +10,7 @@ let categories = [];
 let cart = loadCart();
 let selected = null;
 let quantity = 1;
+let currentProductId = null;
 let checkoutMode = "single";
 let activePromo = null;
 let depositProvider = "xrocket";
@@ -292,13 +293,19 @@ async function api(path, options = {}) {
 }
 
 function showView(viewId) {
+  const activeView = document.getElementById(viewId);
+  if (!activeView?.classList.contains("view")) return;
+  localStorage.setItem("altera-active-view", viewId);
+  if (viewId !== "product-view") {
+    currentProductId = null;
+    localStorage.removeItem("altera-active-product");
+  }
   document.querySelectorAll(".view").forEach((view) => {
     view.hidden = view.id !== viewId;
     view.classList.toggle("active-view", view.id === viewId);
   });
   document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === viewId));
   $("cart-bar").hidden = viewId !== "catalog-view" || !cart.some((line) => line.quantity > 0);
-  const activeView = document.getElementById(viewId);
   activeView?.setAttribute("tabindex", "-1");
   activeView?.focus({ preventScroll: true });
   if (viewId === "cart-view") renderCart();
@@ -308,6 +315,8 @@ function showView(viewId) {
 }
 
 async function openProductPage(item) {
+  currentProductId = item.id;
+  localStorage.setItem("altera-active-product", String(item.id));
   rememberViewed(item.id);
   showView("product-view");
   const node = $("product-detail");
@@ -344,9 +353,9 @@ async function openProductPage(item) {
           <div class="product-rating">${rating ? `★ ${rating.toFixed(1)}` : "Новый товар"} <span>· ${Number(product.reviews_count || reviews.length)} отзывов</span></div>
         </div>
       </div>
-      <div class="product-price-row"><strong>${Number(product.price).toFixed(2)} USDT</strong><span>${product.stock > 0 ? `${product.stock} шт. в наличии` : "Нет в наличии"}</span></div>
+      <div class="product-price-row"><strong>${Number(product.price).toFixed(2)} USDT</strong><span class="product-stock">${product.stock > 0 ? `${product.stock} шт. в наличии` : "Нет в наличии"}</span></div>
       <div class="product-updated">Обновлено: ${formatDate(product.updated_at || product.created_at || "")}</div>
-      <div class="product-badges"><span class="badge">Моментальная выдача</span>${product.stock < 1 ? `<span class="badge badge-warning">Нет в наличии</span>` : ""}</div>
+      <div class="product-badges"><span class="badge">Моментальная выдача</span><span class="badge badge-warning product-stock-badge" ${product.stock > 0 ? "hidden" : ""}>Нет в наличии</span></div>
       <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-collapsed"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div><button class="description-toggle" type="button" aria-expanded="false">Показать полностью</button></section>
       <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
       <div class="product-actions"><button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>${product.has_purchased_category === true ? "Купить снова" : "Купить"}</button><button id="product-cart" class="secondary-button" ${product.stock < 1 ? "disabled" : ""}>В корзину</button></div>
@@ -713,6 +722,7 @@ function submitPurchase(payment) {
   }
   const lines = checkoutLines();
   if (!lines.length || lines.some((line) => !categories.find((item) => item.id === line.id))) return;
+  const purchaseLines = lines.map((line) => ({ id: line.id, quantity: line.quantity }));
   const amount = (baseCheckoutTotal() * (1 - (activePromo?.amount || 0) / 100)).toFixed(2);
   tg.showPopup({
     title: "Подтверждение покупки",
@@ -755,6 +765,7 @@ function submitPurchase(payment) {
         body: JSON.stringify(payload)
       });
       if (result.provider === "balance" && result.status === "paid") {
+        applyPurchasedStock(purchaseLines);
         cart = checkoutMode === "cart" ? [] : cart;
         saveCart();
         closeCheckout();
@@ -766,8 +777,8 @@ function submitPurchase(payment) {
         return;
       }
       if (result.provider === "xrocket" && result.pay_url) {
-        pendingPayment = result;
-        showPaymentWaiting(result);
+        pendingPayment = { ...result, purchaseLines };
+        showPaymentWaiting(pendingPayment);
         showToast("Счёт xRocket создан");
         pollPurchasePayment();
         return;
@@ -777,6 +788,7 @@ function submitPurchase(payment) {
         if (!tg.openInvoice) throw new Error("Telegram Stars недоступны в этом клиенте");
         tg.openInvoice(result.invoice_link, (invoiceStatus) => {
           if (invoiceStatus === "paid") {
+            applyPurchasedStock(purchaseLines);
             closeCheckout();
             showSuccessScreen(result.order_number, "Товар будет доступен в истории покупок после подтверждения.");
             loadProfile();
@@ -888,12 +900,12 @@ async function checkPurchasePayment(manual = false) {
     if (result.status === "paid" || result.status === "fulfilled") {
       status.textContent = `Оплата подтверждена. Заказ ${result.order_number || ""} выдан.`;
       showToast("Оплата подтверждена");
+      applyPurchasedStock(pendingPayment.purchaseLines || []);
       pendingPayment = null;
       if (purchasePollTimer) clearInterval(purchasePollTimer);
       if (purchaseExpiryTimer) clearInterval(purchaseExpiryTimer);
       loadHistory();
       loadProfile();
-      loadCatalog();
       haptic("success");
       return true;
     }
@@ -1346,8 +1358,47 @@ function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (char) => 
 function loadCart() { try { return JSON.parse(localStorage.getItem("altera-cart") || "[]").filter((line) => line && Number(line.id) > 0 && Number(line.quantity) > 0); } catch { return []; } }
 function saveCart() { localStorage.setItem("altera-cart", JSON.stringify(cart)); }
 
-async function loadCatalog() {
-  renderCatalogSkeleton();
+function applyPurchasedStock(lines) {
+  const purchased = new Map();
+  lines.forEach((line) => {
+    const id = Number(line.id);
+    const count = Number(line.quantity);
+    if (Number.isInteger(id) && Number.isFinite(count) && count > 0) {
+      purchased.set(id, (purchased.get(id) || 0) + count);
+    }
+  });
+  if (!purchased.size) return;
+  for (const item of [...categories, ...favoriteItems]) {
+    const count = purchased.get(Number(item.id));
+    if (count) item.stock = Math.max(0, Number(item.stock || 0) - count);
+  }
+  cart = cart
+    .map((line) => ({
+      ...line,
+      quantity: Math.max(0, line.quantity - (purchased.get(Number(line.id)) || 0)),
+    }))
+    .filter((line) => line.quantity > 0);
+  saveCart();
+  renderCatalog();
+  renderCart();
+  const product = categories.find((item) => item.id === currentProductId);
+  if (product) {
+    const inStock = Number(product.stock) > 0;
+    const stockLabel = $("product-detail").querySelector(".product-stock");
+    if (stockLabel) stockLabel.textContent = inStock ? `${product.stock} шт. в наличии` : "Нет в наличии";
+    const stockBadge = $("product-detail").querySelector(".product-stock-badge");
+    if (stockBadge) stockBadge.hidden = inStock;
+    const buyButton = $("product-buy");
+    const cartButton = $("product-cart");
+    if (buyButton) buyButton.disabled = !inStock;
+    if (cartButton) cartButton.disabled = !inStock;
+  }
+  if ($("favorites-view").classList.contains("active-view")) loadFavorites();
+  loadCatalog({ showLoading: false });
+}
+
+async function loadCatalog({ showLoading = true } = {}) {
+  if (showLoading) renderCatalogSkeleton();
   try {
     restoreCatalogFilters();
     const data = await api("/api/catalog");
@@ -1362,7 +1413,8 @@ async function loadCatalog() {
     const savedCategory = $("category-filter").dataset.savedValue;
     if (savedCategory && groups.includes(savedCategory)) $("category-filter").value = savedCategory;
     cart = cart.filter((line) => categories.some((item) => item.id === line.id));
-    cart.forEach((line) => { const item = categories.find((entry) => entry.id === line.id); if (item.stock > 0) line.quantity = Math.min(line.quantity, item.stock); });
+    cart.forEach((line) => { const item = categories.find((entry) => entry.id === line.id); line.quantity = Math.min(line.quantity, item.stock); });
+    cart = cart.filter((line) => line.quantity > 0);
     saveCart();
     renderCatalog();
     renderCart();
@@ -1373,8 +1425,19 @@ async function loadCatalog() {
   }
 }
 
-loadCatalog();
-loadProfile();
+const savedView = localStorage.getItem("altera-active-view");
+const savedViewNode = savedView && document.getElementById(savedView);
+if (savedViewNode?.classList.contains("view")) showView(savedView);
+if (savedView === "product-view") $("product-detail").innerHTML = `<div class="skeleton skeleton-product"></div>`;
+loadCatalog().then(() => {
+  if (savedView === "product-view") {
+    const productId = Number(localStorage.getItem("altera-active-product"));
+    const product = categories.find((item) => item.id === productId);
+    if (product) openProductPage(product);
+    else showView("catalog-view");
+  }
+});
+if (savedView !== "profile-view") loadProfile();
 
 function saveCatalogFilters() {
   localStorage.setItem("altera-catalog-filters", JSON.stringify({
