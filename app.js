@@ -116,7 +116,7 @@ document.querySelectorAll(".provider-option").forEach((button) => button.addEven
 $("deposit-submit").addEventListener("click", startDeposit);
 document.body.addEventListener("click", async (event) => {
   const rippleTarget = event.target.closest("button:not([disabled]), .card");
-  if (rippleTarget && !rippleTarget.classList.contains("tab")) {
+  if (rippleTarget && !rippleTarget.classList.contains("tab") && !rippleTarget.classList.contains("settings-button")) {
     const ripple = document.createElement("span");
     ripple.className = "ripple";
     const rect = rippleTarget.getBoundingClientRect();
