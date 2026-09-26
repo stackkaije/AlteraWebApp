@@ -22,7 +22,6 @@ let checkoutReturnFocus = null;
 let purchasePollTimer = null;
 let purchaseExpiryTimer = null;
 let currentBalance = null;
-let userPurchaseCount = 0;
 let checkoutRequestKey = null;
 let audioContext = null;
 let xrocketChoice = null;
@@ -317,7 +316,6 @@ function showView(viewId) {
 async function openProductPage(item) {
   currentProductId = item.id;
   localStorage.setItem("altera-active-product", String(item.id));
-  rememberViewed(item.id);
   showView("product-view");
   const node = $("product-detail");
   node.innerHTML = `<div class="skeleton skeleton-product"></div>`;
@@ -410,12 +408,7 @@ function renderCatalog() {
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(item);
   });
-  const popular = [...visible].sort((a, b) => Number(b.reviews_count || 0) - Number(a.reviews_count || 0)).slice(0, 3);
   const newItems = [...visible].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 3);
-  const viewedIds = getViewedIds();
-  const recentlyViewed = viewedIds.map((id) => categories.find((item) => item.id === id)).filter(Boolean).slice(0, 3);
-  const boughtIds = JSON.parse(localStorage.getItem("altera-bought-before") || "[]");
-  const boughtBefore = boughtIds.map((id) => categories.find((item) => item.id === id)).filter(Boolean).slice(0, 3);
   const hasActiveFilters = Boolean(query) || group !== "all" || stockFilter !== "all" || sort !== "default";
   const featured = (title, items, usedIds) => {
     const uniqueItems = items.filter((item) => !usedIds.has(item.id));
@@ -433,13 +426,7 @@ function renderCatalog() {
   `).join("")
       : (() => {
       const featuredIds = new Set();
-      const personalized = userPurchaseCount >= 3
-        ? featured("Для вас", recentlyViewed.length ? recentlyViewed : popular, featuredIds)
-        : "";
-      return personalized
-        + featured("Вы покупали", boughtBefore, featuredIds)
-        + featured("Популярное", popular, featuredIds)
-        + featured("Новинки", newItems, featuredIds)
+      return featured("Новинки", newItems, featuredIds)
         + [...groups.entries()].map(([key, items]) => `
     <section class="catalog-group">
       <h2 class="group-title">${escapeHtml(groupTitle(key))}</h2>
@@ -483,9 +470,6 @@ function levenshtein(a, b) {
   }
   return row[b.length];
 }
-function getViewedIds() { try { return JSON.parse(localStorage.getItem("altera-viewed") || "[]"); } catch { return []; } }
-function rememberViewed(id) { localStorage.setItem("altera-viewed", JSON.stringify([id, ...getViewedIds().filter((value) => value !== id)].slice(0, 8))); }
-
 function renderCatalogSkeleton(count = 6) {
   catalogNode.innerHTML = `<div class="skeleton-grid">${Array.from({ length: count }, () => `
     <article class="card skeleton-card" aria-hidden="true">
@@ -1043,7 +1027,6 @@ async function loadProfile() {
   try {
     const data = await api("/api/profile");
     currentBalance = Number(data.balance);
-    userPurchaseCount = Number(data.purchases || 0);
     const user = data.user || {};
     const photoUrl = String(user.photo_url || "").trim();
     const avatarFallback = escapeHtml((user.first_name || user.username || "?").slice(0, 1).toUpperCase());
@@ -1072,14 +1055,11 @@ async function loadHistory() {
   try {
     const days = $("history-date-filter").value;
     const data = await api(`/api/history?limit=100&sort=newest&status=all&days=${encodeURIComponent(days)}`);
-    const bought = [];
     $("history-list").innerHTML = data.history?.length ? data.history.map((entry) => {
       const status = entry.status || "delivered";
-      if (entry.cat_id && (status === "delivered" || status === "fulfilled")) bought.push(entry.cat_id);
       const method = entry.payment_method === "xrocket" ? "xRocket" : entry.payment_method === "stars" ? "Telegram Stars" : "Баланс";
       return `<article class="history-item"><div><strong>${escapeHtml(entry.product)}</strong><span>${escapeHtml(entry.item_preview || "Товар выдан")}</span><span class="history-meta"><b>${escapeHtml(entry.order_number || "Заказ")}</b> · ${method} · ${Number(entry.amount || 0).toFixed(2)} USDT</span></div><div class="history-actions"><time>${formatDate(entry.date)}</time><span class="order-status status-${escapeHtml(status)}">${statusLabel(status)}</span><div class="history-buttons"><button class="text-button" data-order-action="receive" data-history-id="${entry.id}" data-order-number="${escapeHtml(entry.order_number || "")}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Получить товар</button><button class="text-button" data-order-action="copy" data-history-id="${entry.id}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Скопировать товар</button><button class="text-button" data-repeat-cat="${entry.cat_id || ""}" ${entry.cat_id ? "" : "disabled"}>Повторить покупку</button><button class="text-button support-button" data-order-action="support" data-order-number="${escapeHtml(entry.order_number || "")}">Проблема с заказом</button></div></div></article>`;
     }).join("") : `<div class="empty-state"><span class="empty-illustration" aria-hidden="true">▤</span><strong>Покупок пока нет</strong><span>Ваши выданные товары появятся здесь.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>`;
-    localStorage.setItem("altera-bought-before", JSON.stringify([...new Set(bought)].slice(0, 12)));
     $("history-status").textContent = data.history?.length ? `${data.history.length} записей` : "";
   } catch (error) { $("history-status").innerHTML = `${escapeHtml(error.message)} <button class="text-button inline-retry" type="button" data-retry="history">Повторить</button>`; }
 }
