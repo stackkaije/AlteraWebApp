@@ -228,7 +228,7 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .stats span { color: var(--muted); font-size: 11px; }
 .profile-card-heading { display: grid; gap: 3px; margin-bottom: 12px; }
 .profile-card-heading span { color: var(--muted); font-size: 12px; }
-.referral-link { display: flex; align-items: center; gap: 8px; padding: 10px; background: var(--panel); border-radius: 10px; }
+.referral-link { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #4b5357; background: var(--panel); border-radius: 10px; }
 .referral-link code { min-width: 0; flex: 1; overflow: hidden; color: var(--text); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .copy-button { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--soft); color: var(--text); font-size: 12px; }
 .copy-button:disabled { opacity: .45; cursor: not-allowed; }
