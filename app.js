@@ -28,6 +28,27 @@ let xrocketChoice = null;
 
 tg?.ready();
 tg?.expand();
+let maxVisualViewportHeight = window.visualViewport?.height || window.innerHeight;
+function syncFixedPanelsWithKeyboard() {
+  const viewport = window.visualViewport;
+  if (!viewport) return;
+  const focusedElement = document.activeElement;
+  const keyboardTarget = focusedElement instanceof HTMLElement
+    && (focusedElement.matches("input, textarea, select") || focusedElement.isContentEditable);
+  if (!keyboardTarget && viewport.height > maxVisualViewportHeight - 80) {
+    maxVisualViewportHeight = Math.max(maxVisualViewportHeight, viewport.height);
+  }
+  const keyboardInset = keyboardTarget && maxVisualViewportHeight - viewport.height > 120
+    ? Math.max(0, maxVisualViewportHeight - viewport.height - viewport.offsetTop)
+    : 0;
+  document.documentElement.style.setProperty("--keyboard-offset", `${keyboardInset}px`);
+}
+window.visualViewport?.addEventListener("resize", syncFixedPanelsWithKeyboard);
+window.visualViewport?.addEventListener("scroll", syncFixedPanelsWithKeyboard);
+window.addEventListener("resize", syncFixedPanelsWithKeyboard);
+document.addEventListener("focusin", syncFixedPanelsWithKeyboard);
+document.addEventListener("focusout", () => requestAnimationFrame(syncFixedPanelsWithKeyboard));
+syncFixedPanelsWithKeyboard();
 $("checkout-close").addEventListener("click", closeCheckout);
 $("quantity-minus").addEventListener("click", () => changeQuantity(-1));
 $("quantity-plus").addEventListener("click", () => changeQuantity(1));
@@ -294,6 +315,7 @@ async function openProductPage(item) {
     const product = data.product || item;
     const rating = Number(product.rating || 0);
     const reviews = product.reviews || [];
+    const canReview = product.has_purchased_product === true;
     const productName = (product.name || "").toUpperCase();
     const productImage = product.group === "gy_1970" && productName.includes("ПОД ГК")
       ? `<img src="./assets/gosuslugi-key-logo.jpg" alt="Логотип Госуслуг под ГК">`
@@ -324,8 +346,8 @@ async function openProductPage(item) {
       <div class="product-updated">Обновлено: ${formatDate(product.updated_at || product.created_at || "")}</div>
       <div class="product-badges"><span class="badge">Моментальная выдача</span>${product.stock < 1 ? `<span class="badge badge-warning">Нет в наличии</span>` : ""}</div>
       <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-collapsed"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div><button class="description-toggle" type="button" aria-expanded="false">Показать полностью</button></section>
-      <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div></section>
-      <div class="product-actions"><button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>Купить снова</button><button id="product-cart" class="secondary-button" ${product.stock < 1 ? "disabled" : ""}>В корзину</button></div>
+      <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
+      <div class="product-actions"><button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>${product.has_purchased_category === true ? "Купить снова" : "Купить"}</button><button id="product-cart" class="secondary-button" ${product.stock < 1 ? "disabled" : ""}>В корзину</button></div>
       <section class="product-section"><h2>Похожие товары</h2><div class="similar-products">${categories.filter((entry) => entry.id !== product.id && entry.group === product.group).slice(0, 3).map(cardTemplate).join("") || `<p class="muted">Похожих товаров пока нет.</p>`}</div></section>`;
     $("product-buy").addEventListener("click", () => openCheckout(product));
     $("product-cart").addEventListener("click", () => { addToCart(product.id); showToast("Товар добавлен в корзину"); });
@@ -337,7 +359,7 @@ async function openProductPage(item) {
       descriptionToggle.setAttribute("aria-expanded", String(expanded));
       descriptionToggle.textContent = expanded ? "Свернуть описание" : "Показать полностью";
     });
-    $("review-submit").addEventListener("click", async () => {
+    if (canReview) $("review-submit").addEventListener("click", async () => {
       const button = $("review-submit");
       button.disabled = true;
       try {
@@ -505,6 +527,7 @@ function resetCardTilt(event) {
 }
 
 function handleCatalogClick(event) {
+  if (event.target.closest("[data-favorite-notify]")) return;
   if (event.target.closest("[data-reset-filters]")) {
     $("reset-filters").click();
     return;
