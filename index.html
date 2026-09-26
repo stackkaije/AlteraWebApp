@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111315">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=74">
+  <link rel="stylesheet" href="./style.css?v=76">
 </head>
 <body>
   <main class="app">
@@ -94,13 +94,13 @@
       <section class="profile-card deposit-card">
         <div class="profile-card-heading"><strong>Пополнить баланс</strong><span>Зачисление в USDT</span></div>
         <div class="deposit-amounts" role="group" aria-label="Сумма пополнения">
-          <button type="button" class="amount-option" data-amount="5">5</button>
-          <button type="button" class="amount-option active" data-amount="10">10</button>
-          <button type="button" class="amount-option" data-amount="25">25</button>
           <button type="button" class="amount-option" data-amount="50">50</button>
-          <button type="button" class="amount-option" data-amount="100">100</button>
+          <button type="button" class="amount-option" data-amount="75">75</button>
+          <button type="button" class="amount-option active" data-amount="100">100</button>
+          <button type="button" class="amount-option" data-amount="250">250</button>
+          <button type="button" class="amount-option" data-amount="500">500</button>
         </div>
-        <label class="deposit-custom"><span>Своя сумма, USDT</span><input id="deposit-amount" type="number" min="1" max="10000" step="0.01" value="10"></label>
+        <label class="deposit-custom"><span>Своя сумма, USDT</span><input id="deposit-amount" type="number" min="1" max="10000" step="0.01" value="100"></label>
         <div class="deposit-providers" role="group" aria-label="Способ пополнения">
           <button type="button" class="provider-option active" data-provider="xrocket">xRocket</button>
           <button type="button" class="provider-option" data-provider="stars">Telegram Stars</button>
