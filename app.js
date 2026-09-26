@@ -6,7 +6,6 @@ const catalogNode = $("catalog");
 const statusNode = $("status");
 const checkoutNode = $("checkout");
 const quantityNode = $("quantity");
-let bootProgress = 0;
 let categories = [];
 let cart = loadCart();
 let selected = null;
@@ -27,29 +26,8 @@ let checkoutRequestKey = null;
 let audioContext = null;
 let xrocketChoice = null;
 
-function updateBootProgress(value, status) {
-  bootProgress = Math.max(bootProgress, Math.min(100, value));
-  const fill = $("app-loader-fill");
-  const percent = $("app-loader-percent");
-  const statusNode = $("app-loader-status");
-  if (fill) fill.style.width = `${bootProgress}%`;
-  if (percent) percent.textContent = `${Math.round(bootProgress)}%`;
-  if (statusNode && status) statusNode.textContent = status;
-}
-
-function finishBoot() {
-  updateBootProgress(100, "Готово");
-  setTimeout(() => $("app-loader")?.classList.add("is-hidden"), 450);
-}
-
-updateBootProgress(10, "Запускаем Altera");
-
 tg?.ready();
 tg?.expand();
-applyTheme(localStorage.getItem("altera-theme") || "telegram");
-tg?.onEvent?.("themeChanged", () => {
-  if ((localStorage.getItem("altera-theme") || "telegram") === "telegram") applyTheme("telegram");
-});
 $("checkout-close").addEventListener("click", closeCheckout);
 $("quantity-minus").addEventListener("click", () => changeQuantity(-1));
 $("quantity-plus").addEventListener("click", () => changeQuantity(1));
@@ -81,14 +59,6 @@ $("waiting-copy").addEventListener("click", () => pendingPayment && copyText(pen
   .then(() => showToast("Ссылка скопирована")).catch(() => showToast("Не удалось скопировать ссылку", "error")));
 $("waiting-check").addEventListener("click", () => pendingPayment && checkPurchasePayment(true));
 $("product-back").addEventListener("click", () => showView("catalog-view"));
-$("how-it-works-button").addEventListener("click", () => {
-  $("how-it-works-modal").hidden = false;
-  $("how-it-works-close").focus();
-});
-$("how-it-works-close").addEventListener("click", () => { $("how-it-works-modal").hidden = true; });
-$("how-it-works-modal").addEventListener("click", (event) => {
-  if (event.target === $("how-it-works-modal")) $("how-it-works-modal").hidden = true;
-});
 $("cart-checkout").addEventListener("click", () => openCartCheckout());
 $("cart-bar-open").addEventListener("click", () => openCartCheckout());
 $("refresh-catalog").addEventListener("click", () => {
@@ -169,25 +139,6 @@ document.body.addEventListener("click", (event) => {
   if (retry.dataset.retry === "catalog") loadCatalog();
 });
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => showView(tab.dataset.view)));
-document.querySelectorAll("[data-theme-choice]").forEach((button) => button.addEventListener("click", () => {
-  const mode = button.dataset.themeChoice;
-  localStorage.setItem("altera-theme", mode);
-  applyTheme(mode);
-}));
-function applyGlassPreference(enabled) {
-  document.documentElement.classList.toggle("no-glass", !enabled);
-  const toggle = $("glass-toggle");
-  if (!toggle) return;
-  toggle.setAttribute("aria-checked", String(enabled));
-  toggle.classList.toggle("is-on", enabled);
-  toggle.querySelector("b").textContent = enabled ? "Вкл." : "Выкл.";
-}
-$("glass-toggle").addEventListener("click", () => {
-  const enabled = $("glass-toggle").getAttribute("aria-checked") !== "true";
-  localStorage.setItem("altera-glass", String(enabled));
-  applyGlassPreference(enabled);
-});
-applyGlassPreference(localStorage.getItem("altera-glass") !== "false");
 function applySoundPreference(enabled) {
   const toggle = $("sound-toggle");
   if (!toggle) return;
@@ -250,10 +201,6 @@ checkoutNode.addEventListener("click", (event) => {
   if (event.target === checkoutNode) closeCheckout();
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !$("how-it-works-modal").hidden) {
-    $("how-it-works-modal").hidden = true;
-    return;
-  }
   if (checkoutNode.hidden) return;
   if (event.key === "Escape") {
     event.preventDefault();
@@ -327,7 +274,6 @@ function showView(viewId) {
     view.classList.toggle("active-view", view.id === viewId);
   });
   document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === viewId));
-  $("how-it-works-button").hidden = viewId !== "catalog-view";
   $("cart-bar").hidden = viewId !== "catalog-view" || !cart.some((line) => line.quantity > 0);
   const activeView = document.getElementById(viewId);
   activeView?.setAttribute("tabindex", "-1");
@@ -336,18 +282,6 @@ function showView(viewId) {
   if (viewId === "history-view") loadHistory();
   if (viewId === "profile-view") loadProfile();
   if (viewId === "favorites-view") loadFavorites();
-}
-
-function applyTheme(mode) {
-  const theme = mode === "telegram"
-    ? (tg?.colorScheme || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"))
-    : mode;
-  document.documentElement.classList.add("theme-switching");
-  document.documentElement.dataset.theme = theme;
-  setTimeout(() => document.documentElement.classList.remove("theme-switching"), 320);
-  document.querySelectorAll("[data-theme-choice]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.themeChoice === mode);
-  });
 }
 
 async function openProductPage(item) {
@@ -387,24 +321,14 @@ async function openProductPage(item) {
         </div>
       </div>
       <div class="product-price-row"><strong>${Number(product.price).toFixed(2)} USDT</strong><span>${product.stock > 0 ? `${product.stock} шт. в наличии` : "Нет в наличии"}</span></div>
-      <div class="product-updated">Обновлено: ${formatDate(product.updated_at || product.created_at || "")}<button class="text-button" id="product-share" type="button">Поделиться</button></div>
+      <div class="product-updated">Обновлено: ${formatDate(product.updated_at || product.created_at || "")}</div>
       <div class="product-badges"><span class="badge">Моментальная выдача</span>${product.stock < 1 ? `<span class="badge badge-warning">Нет в наличии</span>` : ""}</div>
       <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-collapsed"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div><button class="description-toggle" type="button" aria-expanded="false">Показать полностью</button></section>
-      <section class="product-section"><h2>Как это работает</h2><ol><li>Выберите количество и способ оплаты.</li><li>После подтверждения платежа товар выдаётся автоматически.</li><li>Данные заказа сохраняются в разделе «Покупки».</li></ol></section>
-      <section class="product-section"><h2>Ограничения</h2><p class="product-warning">Проверьте описание товара перед оплатой. Цифровые товары после выдачи возврату не подлежат, кроме случаев ошибки выдачи.</p></section>
       <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div></section>
       <div class="product-actions"><button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>Купить снова</button><button id="product-cart" class="secondary-button" ${product.stock < 1 ? "disabled" : ""}>В корзину</button></div>
       <section class="product-section"><h2>Похожие товары</h2><div class="similar-products">${categories.filter((entry) => entry.id !== product.id && entry.group === product.group).slice(0, 3).map(cardTemplate).join("") || `<p class="muted">Похожих товаров пока нет.</p>`}</div></section>`;
     $("product-buy").addEventListener("click", () => openCheckout(product));
     $("product-cart").addEventListener("click", () => { addToCart(product.id); showToast("Товар добавлен в корзину"); });
-    $("product-share").addEventListener("click", async () => {
-      const shareData = { title: product.name, text: `${product.name} — ${Number(product.price).toFixed(2)} USDT` };
-      try {
-        if (navigator.share) await navigator.share(shareData);
-        else await copyText(`${product.name} — ${Number(product.price).toFixed(2)} USDT`);
-        showToast(navigator.share ? "Ссылка отправлена" : "Информация скопирована");
-      } catch (error) { if (error.name !== "AbortError") showToast("Не удалось поделиться", "error"); }
-    });
     const descriptionToggle = node.querySelector(".description-toggle");
     const description = node.querySelector(".product-description");
     descriptionToggle.addEventListener("click", () => {
@@ -544,13 +468,13 @@ function cardTemplate(item) {
   const reviews = Number(item.reviews_count || 0);
   const badges = (item.badges || []).slice(0, 2).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("");
   return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}" data-tilt-card>
-    <div class="card-top"><span class="pill"><span class="category-icon" aria-hidden="true">${groupIcon(item.group || "other")}</span>${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
+    <div class="card-top"><span class="pill">${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
     ${badges ? `<div class="badges">${badges}</div>` : ""}
     <h2>${escapeHtml(item.name)}</h2>
     <p class="description">${escapeHtml(item.description || "Моментальная выдача после оплаты")}</p>
     <div class="product-rating" aria-label="Рейтинг ${rating.toFixed(1)} из 5">${rating ? `★ ${rating.toFixed(1)}` : "Новый товар"} <span>· ${reviews} отзывов</span></div>
     <div class="meta"><div class="price">${Number(item.price).toFixed(2)} <small>USDT</small></div>
-      <div class="card-actions"><button class="details" data-id="${item.id}">Подробнее</button>${item.stock > 0 ? `<button class="cart-add" data-id="${item.id}">В корзину</button>` : ""}<button class="buy" data-id="${item.id}" ${item.stock < 1 ? "disabled" : ""}>${item.stock < 1 ? "Нет в наличии" : "Купить"}</button></div>
+      <div class="card-actions">${item.stock > 0 ? `<button class="cart-add" data-id="${item.id}">В корзину</button>` : ""}<button class="buy" data-id="${item.id}" ${item.stock < 1 ? "disabled" : ""}>${item.stock < 1 ? "Нет в наличии" : "Купить"}</button></div>
     </div>
   </article>`;
 }
@@ -558,10 +482,6 @@ function cardTemplate(item) {
 function groupTitle(group) {
   return { l0gu_1970: "Мобильные операторы", gy_1970: "Госуслуги", tbank: "Банковские аккаунты", other: "Другие товары" }[group] || group;
 }
-function groupIcon(group) {
-  return { l0gu_1970: "⌁", gy_1970: "◈", tbank: "₽", other: "✦" }[group] || "✦";
-}
-
 function handleCardTilt(event) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || event.pointerType === "touch") return;
   const card = event.target.closest("[data-tilt-card]");
@@ -609,8 +529,7 @@ function handleCatalogClick(event) {
       button.closest(".card")?.classList.remove("cart-added");
     }, 1200);
     showToast("Товар добавлен в корзину");
-  } else if (button.classList.contains("details")) openProductPage(item);
-  else openCheckout(item);
+  } else openCheckout(item);
 }
 
 function openCheckout(item) {
@@ -1039,6 +958,7 @@ function renderCart() {
       <div class="cart-controls"><button data-action="minus" data-id="${item.id}" aria-label="Уменьшить количество">−</button><b class="quantity-value">${line.quantity}</b><button data-action="plus" data-id="${item.id}" ${unavailable ? "disabled" : ""} aria-label="Увеличить количество">+</button><button class="remove" data-action="remove" data-id="${item.id}">Удалить</button></div></article>`;
   }).join("");
   const hasItems = cart.length > 0;
+  $("cart-clear").hidden = !hasItems;
   $("cart-empty").hidden = hasItems;
   $("cart-summary").hidden = !hasItems;
   const baseTotal = cart.reduce((sum, line) => {
@@ -1081,7 +1001,6 @@ async function loadProfile() {
   if (!initData) {
     $("profile-card").innerHTML = `<div class="empty-state">Профиль доступен при открытии приложения из Telegram.</div>`;
     $("referral-card").innerHTML = `<div class="empty-state">Реферальная программа доступна из Telegram.</div>`;
-    updateBootProgress(88, "Интерфейс готов");
     return;
   }
   try {
@@ -1103,12 +1022,10 @@ async function loadProfile() {
       <div class="referral-link"><code>${escapeHtml(referralLink || "Ссылка недоступна")}</code><button class="copy-button" type="button" data-copy="${escapeHtml(referralLink)}" ${referralLink ? "" : "disabled"}>Копировать</button></div>
       <div class="referral-stats"><div><strong>${Number(referrals.count || 0)}</strong><span>рефералов</span></div><div><strong>${Number(referrals.earnings || 0).toFixed(2)}</strong><span>заработано USDT</span></div></div>`;
     renderCatalog();
-    updateBootProgress(88, "Профиль загружен");
   } catch (error) {
     currentBalance = null;
     $("profile-card").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
     $("referral-card").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
-    updateBootProgress(88, "Интерфейс готов");
   }
 }
 
@@ -1398,7 +1315,6 @@ function loadCart() { try { return JSON.parse(localStorage.getItem("altera-cart"
 function saveCart() { localStorage.setItem("altera-cart", JSON.stringify(cart)); }
 
 async function loadCatalog() {
-  updateBootProgress(24, "Загружаем каталог");
   renderCatalogSkeleton();
   try {
     restoreCatalogFilters();
@@ -1418,16 +1334,15 @@ async function loadCatalog() {
     saveCart();
     renderCatalog();
     renderCart();
-    updateBootProgress(74, "Каталог загружен");
   } catch (error) {
     statusNode.hidden = false;
     statusNode.innerHTML = `Не удалось загрузить каталог. <button class="text-button inline-retry" type="button" data-retry="catalog">Повторить</button>`;
     catalogNode.innerHTML = `<div class="empty-state"><span class="empty-illustration" aria-hidden="true">!</span><strong>Не удалось загрузить товары</strong><span>${escapeHtml(error.message || "Проверьте соединение и попробуйте ещё раз.")}</span></div>`;
-    updateBootProgress(74, "Каталог готов");
   }
 }
 
-Promise.all([loadCatalog(), loadProfile()]).then(finishBoot);
+loadCatalog();
+loadProfile();
 
 function saveCatalogFilters() {
   localStorage.setItem("altera-catalog-filters", JSON.stringify({

@@ -1,23 +1,14 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="dark" data-design="night">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#050505">
+  <meta name="theme-color" content="#111315">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=61">
+  <link rel="stylesheet" href="./style.css?v=68">
 </head>
 <body>
-  <section id="app-loader" class="app-loader" aria-live="polite" aria-label="Загрузка Altera">
-    <div class="app-loader-logo-wrap" aria-hidden="true">
-      <span class="loader-orbit loader-orbit-one"></span><span class="loader-orbit loader-orbit-two"></span>
-      <img class="app-loader-logo" src="./assets/altera-logo-final.png" alt="Altera">
-    </div>
-    <div class="app-loader-brand">ALTERA</div>
-    <div class="app-loader-progress"><span id="app-loader-fill"></span></div>
-    <div class="app-loader-meta"><span id="app-loader-status">Подготавливаем приложение</span><strong id="app-loader-percent">0%</strong></div>
-  </section>
   <main class="app">
     <nav class="tabs" aria-label="Разделы магазина">
       <button class="tab active" data-view="catalog-view" aria-controls="catalog-view"><span>Каталог</span></button>
@@ -32,7 +23,6 @@
           <div class="brand-lockup"><img class="brand-mark" src="./assets/altera-logo-final.png" alt="Altera"><span class="brand-name">ALTERA</span></div>
           <h1>Каталог товаров</h1>
         </div>
-        <button id="how-it-works-button" class="header-help" type="button" aria-label="Как работает магазин">Как это работает?</button>
       </header>
       <section class="home-banner" aria-label="Преимущества магазина">
         <div><span class="banner-kicker">БЫСТРО · БЕЗОПАСНО · 24/7</span><strong>Оплата — выдача автоматически</strong><span>История заказов и поддержка всегда под рукой</span></div>
@@ -134,16 +124,7 @@
     <section id="settings-view" class="view" hidden>
       <div class="section-heading"><div><button class="settings-button" type="button" data-view="profile-view" aria-label="Назад в профиль">‹</button><h2>Настройки</h2></div></div>
       <section class="profile-card settings-card">
-        <div class="profile-card-heading"><strong>Оформление</strong><span>Настройте внешний вид Mini App</span></div>
-        <div class="theme-options" role="group" aria-label="Тема приложения">
-          <button type="button" class="theme-option" data-theme-choice="telegram"><span>◐</span><strong>Как в Telegram</strong><small>Автоматически</small></button>
-          <button type="button" class="theme-option" data-theme-choice="dark"><span>☾</span><strong>Тёмная</strong><small>Контрастная тема</small></button>
-          <button type="button" class="theme-option" data-theme-choice="light"><span>☀</span><strong>Светлая</strong><small>Светлый интерфейс</small></button>
-        </div>
-        <div class="settings-toggle-row">
-          <div><strong>Эффект стекла</strong><small>Размытие и прозрачность нижней панели</small></div>
-          <button id="glass-toggle" class="switch" type="button" role="switch" aria-checked="true"><span></span><b>Вкл.</b></button>
-        </div>
+        <div class="profile-card-heading"><strong>Настройки интерфейса</strong><span>Настройте звуковые сигналы приложения</span></div>
         <div class="settings-toggle-row">
           <div><strong>Звуки интерфейса</strong><small>Мягкие сигналы для корзины, оплаты и бонусов</small></div>
           <button id="sound-toggle" class="switch" type="button" role="switch" aria-checked="true"><span></span><b>Вкл.</b></button>
@@ -154,7 +135,7 @@
     <section id="cart-view" class="view" hidden>
       <div class="section-heading"><div><h2>Корзина</h2></div></div>
       <section id="cart-list" class="cart-list"></section>
-      <button id="cart-clear" class="text-button cart-clear" type="button">Очистить корзину</button>
+      <button id="cart-clear" class="text-button cart-clear" type="button" hidden>Очистить корзину</button>
       <div id="cart-empty" class="empty-state"><span class="empty-illustration" aria-hidden="true">🛒</span><strong>Корзина пока пуста</strong><span>Добавьте товары, чтобы оформить заказ.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>
       <div id="cart-summary" class="cart-summary" hidden>
         <div class="cart-progress" aria-live="polite"><div class="cart-progress-heading"><span id="cart-progress-label">До бонуса</span><strong id="cart-progress-value"></strong></div><div class="progress-track"><span id="cart-progress-fill"></span></div></div>
@@ -211,12 +192,6 @@
       </section>
     </div>
   </section>
-  <section id="how-it-works-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="how-it-works-title">
-    <div class="info-modal-dialog">
-      <div class="checkout-header"><h2 id="how-it-works-title">Как это работает?</h2><button id="how-it-works-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div>
-      <div class="steps"><span>1 <b>Выберите товар</b><small>Откройте карточку и нажмите «Купить» или добавьте товар в корзину.</small></span><span>2 <b>Оплатите</b><small>Выберите баланс, xRocket или Telegram Stars.</small></span><span>3 <b>Получите автоматически</b><small>После подтверждения оплаты данные появятся в истории заказа.</small></span></div>
-    </div>
-  </section>
   <section id="xrocket-choice-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="xrocket-choice-title">
     <div class="info-modal-dialog xrocket-choice-dialog">
       <div class="checkout-header"><div><span class="checkout-kicker">XROCKET</span><h2 id="xrocket-choice-title">Как оплатить?</h2></div><button id="xrocket-choice-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div>
@@ -231,6 +206,6 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button><button id="success-copy" class="secondary-button" type="button">Скопировать товар</button></div></div>
   </section>
-  <script src="./app.js?v=69"></script>
+  <script src="./app.js?v=75"></script>
 </body>
 </html>
