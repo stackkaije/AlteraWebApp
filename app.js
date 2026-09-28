@@ -1033,8 +1033,8 @@ function baseCartTotal() {
 async function loadProfile() {
   const initData = await waitForTelegramInitData();
   if (!initData) {
-    $("profile-card").innerHTML = `<div class="empty-state">Профиль доступен при открытии приложения из Telegram.</div>`;
-    $("referral-card").innerHTML = `<div class="empty-state">Реферальная программа доступна из Telegram.</div>`;
+    $("profile-card").innerHTML = `<div class="empty-state">Telegram не передал данные авторизации Mini App. Закройте приложение и откройте его заново кнопкой бота.</div>`;
+    $("referral-card").innerHTML = `<div class="empty-state">Нет данных авторизации Telegram.</div>`;
     return;
   }
   try {
@@ -1057,7 +1057,10 @@ async function loadProfile() {
     renderCatalog();
   } catch (error) {
     currentBalance = null;
-    $("profile-card").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+    const message = error.message === "Telegram authorization required"
+      ? "Сервер отклонил подпись Telegram. Проверьте, что бот и API запущены с одним токеном бота, затем закройте и заново откройте Mini App."
+      : error.message;
+    $("profile-card").innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
     $("referral-card").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
   }
 }
