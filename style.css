@@ -236,7 +236,10 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .referral-stats div { display: grid; gap: 3px; }
 .referral-stats span { color: var(--muted); font-size: 11px; }
 .deposit-amounts, .deposit-providers { display: flex; gap: 7px; margin-bottom: 10px; }
+.deposit-providers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .amount-option, .provider-option { flex: 1; border: 1px solid var(--line); border-radius: 9px; padding: 9px 6px; background: var(--soft); color: var(--muted); }
+.provider-option { width: 100%; min-height: 42px; padding: 10px 12px; text-align: center; }
+.provider-option:last-child { grid-column: 1 / -1; }
 .amount-option.active, .provider-option.active { border-color: var(--text); color: var(--text); background: #26262b; }
 .deposit-custom { display: grid; gap: 6px; margin-bottom: 11px; color: var(--muted); font-size: 12px; }
 .deposit-custom input { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--panel); color: var(--text); outline: 0; }
@@ -326,8 +329,12 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .checkout-summary { display: grid; gap: 4px; margin: 12px 0; padding: 12px 13px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); color: var(--muted); font-size: 13px; }
 .checkout-summary span:first-child { color: var(--text); font-weight: 700; }
 .checkout-shortage { color: #f4d37c !important; }
-.payment-options { display: grid; gap: 9px; }
+.payment-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
 .pay-button { width: 100%; background: transparent; border: 1px solid #777780; color: var(--text); }
+#pay-xrocket { grid-column: 1; grid-row: 1; }
+#pay-cryptobot { grid-column: 2; grid-row: 1; }
+#pay-stars { grid-column: 1 / -1; grid-row: 2; }
+#pay-balance { grid-column: 1 / -1; grid-row: 3; }
 .pay-button.secondary { border-color: var(--line); color: var(--text); }
 .pay-button:hover { background: #1d1d21; border-color: var(--text); }
 .secondary-button { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--soft); color: var(--text); font-weight: 700; }

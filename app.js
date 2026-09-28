@@ -1064,7 +1064,7 @@ async function loadProfile() {
     const authMessages = {
       init_data_missing: "Telegram не передал данные авторизации. Закройте Mini App и откройте его кнопкой в боте.",
       init_data_expired: "Данные авторизации устарели. Закройте Mini App и откройте его заново из бота.",
-      signature_mismatch: "Сервер не подтвердил подпись Telegram. Проверьте, что сервер использует токен именно этого бота.",
+      signature_mismatch: "Сервер не подтвердил подпись Telegram. Перезапустите бота и API, чтобы загрузились основной бот и подключённые зеркала.",
       invalid_auth_date: "Telegram передал некорректное время авторизации. Перезапустите Mini App.",
       invalid_hash_format: "Telegram передал некорректные данные авторизации. Перезапустите Mini App.",
       duplicate_fields: "В данных авторизации повторяются поля. Закройте Mini App и откройте его заново.",
