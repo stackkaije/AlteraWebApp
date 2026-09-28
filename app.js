@@ -289,7 +289,11 @@ async function api(path, options = {}) {
     headers: { ...headers(), ...(options.headers || {}) }
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Ошибка запроса");
+  if (!response.ok) {
+    const error = new Error(data.error || "Ошибка запроса");
+    error.authError = data.auth_error;
+    throw error;
+  }
   return data;
 }
 
@@ -1057,11 +1061,21 @@ async function loadProfile() {
     renderCatalog();
   } catch (error) {
     currentBalance = null;
-    const message = error.message === "Telegram authorization required"
-      ? "Сервер отклонил подпись Telegram. Проверьте, что бот и API запущены с одним токеном бота, затем закройте и заново откройте Mini App."
+    const authMessages = {
+      init_data_missing: "Telegram не передал данные авторизации. Закройте Mini App и откройте его кнопкой в боте.",
+      init_data_expired: "Данные авторизации устарели. Закройте Mini App и откройте его заново из бота.",
+      signature_mismatch: "Сервер не подтвердил подпись Telegram. Проверьте, что сервер использует токен именно этого бота.",
+      invalid_auth_date: "Telegram передал некорректное время авторизации. Перезапустите Mini App.",
+      invalid_hash_format: "Telegram передал некорректные данные авторизации. Перезапустите Mini App.",
+      duplicate_fields: "В данных авторизации повторяются поля. Закройте Mini App и откройте его заново.",
+      init_data_too_large: "Данные авторизации слишком велики. Обратитесь в поддержку.",
+      malformed_init_data: "Не удалось разобрать данные авторизации. Закройте Mini App и откройте его заново."
+    };
+    const message = error.authError
+      ? authMessages[error.authError] || "Сервер не смог подтвердить авторизацию Telegram."
       : error.message;
     $("profile-card").innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
-    $("referral-card").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+    $("referral-card").innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
   }
 }
 
