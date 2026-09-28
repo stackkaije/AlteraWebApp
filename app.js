@@ -56,6 +56,7 @@ $("quantity-minus").addEventListener("click", () => changeQuantity(-1));
 $("quantity-plus").addEventListener("click", () => changeQuantity(1));
 $("pay-balance").addEventListener("click", () => submitPurchase("balance"));
 $("pay-xrocket").addEventListener("click", () => submitPurchase("xrocket"));
+$("pay-cryptobot").addEventListener("click", () => submitPurchase("cryptobot"));
 $("pay-stars").addEventListener("click", () => submitPurchase("stars"));
 $("waiting-open").addEventListener("click", () => pendingPayment && openPaymentLink(pendingPayment.pay_url));
 $("xrocket-choice-close").addEventListener("click", () => { $("xrocket-choice-modal").hidden = true; xrocketChoice = null; });
@@ -134,7 +135,8 @@ document.querySelectorAll(".amount-option").forEach((button) => button.addEventL
 document.querySelectorAll(".provider-option").forEach((button) => button.addEventListener("click", () => {
   depositProvider = button.dataset.provider;
   document.querySelectorAll(".provider-option").forEach((option) => option.classList.toggle("active", option === button));
-  $("deposit-submit").textContent = `Пополнить через ${depositProvider === "stars" ? "Telegram Stars" : "xRocket"}`;
+  const providerName = { xrocket: "xRocket", cryptobot: "CryptoBot", stars: "Telegram Stars" }[depositProvider] || "xRocket";
+  $("deposit-submit").textContent = `Пополнить через ${providerName}`;
 }));
 $("deposit-submit").addEventListener("click", startDeposit);
 document.body.addEventListener("click", async (event) => {
@@ -732,7 +734,7 @@ function submitPurchase(payment) {
       }));
     }
     if (activePromo?.promo_type === "percent") payload.promo_code = activePromo.code;
-    const payButtons = ["pay-balance", "pay-xrocket", "pay-stars"]
+    const payButtons = ["pay-balance", "pay-xrocket", "pay-cryptobot", "pay-stars"]
       .map((id) => $(id)).filter(Boolean);
     payButtons.forEach((button) => {
       button.disabled = true;
@@ -760,10 +762,10 @@ function submitPurchase(payment) {
         haptic("success");
         return;
       }
-      if (result.provider === "xrocket" && result.pay_url) {
+      if (["xrocket", "cryptobot"].includes(result.provider) && result.pay_url) {
         pendingPayment = { ...result, purchaseLines };
         showPaymentWaiting(pendingPayment);
-        showToast("Счёт xRocket создан");
+        showToast(`Счёт ${result.provider === "cryptobot" ? "CryptoBot" : "xRocket"} создан`);
         pollPurchasePayment();
         return;
       }
@@ -799,16 +801,18 @@ function submitPurchase(payment) {
 }
 
 function showPaymentWaiting(result) {
+  const providerName = result.provider === "cryptobot" ? "CryptoBot" : "xRocket";
   $("xrocket-choice-qr-panel").hidden = true;
   $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
   $("payment-waiting").hidden = false;
   $("payment-options").hidden = true;
   $("waiting-order").textContent = result.order_number
     ? `Заказ ${result.order_number} · ${Number(result.amount || 0).toFixed(2)} USDT`
-    : "Счёт xRocket создан";
+    : `Счёт ${providerName} создан`;
   $("payment-qr").src = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(result.pay_url)}`;
   $("waiting-amount").textContent = `${Number(result.amount || 0).toFixed(2)} USDT`;
   $("waiting-status").textContent = "Проверяем оплату автоматически...";
+  $("waiting-open").textContent = `Открыть ${providerName}`;
   $("waiting-indicator").textContent = "● Проверка каждые 4 секунды";
   const createdAt = Date.now();
   const expiresAt = createdAt + 30 * 60 * 1000;
@@ -830,7 +834,16 @@ function showPaymentWaiting(result) {
   $("waiting-check").disabled = false;
   $("waiting-check").classList.remove("is-loading");
   $("waiting-expiry").textContent = "Счёт действует 30 минут";
-  xrocketChoice = { payUrl: result.pay_url, amount: result.amount, mode: "purchase", qrShown: false };
+  xrocketChoice = {
+    payUrl: result.pay_url,
+    amount: result.amount,
+    mode: "purchase",
+    provider: result.provider,
+    qrShown: false,
+  };
+  $("external-payment-provider").textContent = providerName.toUpperCase();
+  $("xrocket-choice-description").textContent = `Счёт создан на нужную сумму. Перейдите в ${providerName} или оплатите по QR-коду.`;
+  $("xrocket-open-choice").textContent = `Перейти в ${providerName}`;
   $("xrocket-choice-modal").hidden = false;
   $("xrocket-open-choice").focus();
 }
@@ -1057,7 +1070,7 @@ async function loadHistory() {
     const data = await api(`/api/history?limit=100&sort=newest&status=all&days=${encodeURIComponent(days)}`);
     $("history-list").innerHTML = data.history?.length ? data.history.map((entry) => {
       const status = entry.status || "delivered";
-      const method = entry.payment_method === "xrocket" ? "xRocket" : entry.payment_method === "stars" ? "Telegram Stars" : "Баланс";
+      const method = entry.payment_method === "xrocket" ? "xRocket" : entry.payment_method === "cryptobot" ? "CryptoBot" : entry.payment_method === "stars" ? "Telegram Stars" : "Баланс";
       return `<article class="history-item"><div><strong>${escapeHtml(entry.product)}</strong><span>${escapeHtml(entry.item_preview || "Товар выдан")}</span><span class="history-meta"><b>${escapeHtml(entry.order_number || "Заказ")}</b> · ${method} · ${Number(entry.amount || 0).toFixed(2)} USDT</span></div><div class="history-actions"><time>${formatDate(entry.date)}</time><span class="order-status status-${escapeHtml(status)}">${statusLabel(status)}</span><div class="history-buttons"><button class="text-button" data-order-action="receive" data-history-id="${entry.id}" data-order-number="${escapeHtml(entry.order_number || "")}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Получить товар</button><button class="text-button" data-order-action="copy" data-history-id="${entry.id}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Скопировать товар</button><button class="text-button" data-repeat-cat="${entry.cat_id || ""}" ${entry.cat_id ? "" : "disabled"}>Повторить покупку</button><button class="text-button support-button" data-order-action="support" data-order-number="${escapeHtml(entry.order_number || "")}">Проблема с заказом</button></div></div></article>`;
     }).join("") : `<div class="empty-state"><span class="empty-illustration" aria-hidden="true">▤</span><strong>Покупок пока нет</strong><span>Ваши выданные товары появятся здесь.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>`;
     $("history-status").textContent = data.history?.length ? `${data.history.length} записей` : "";
@@ -1261,11 +1274,22 @@ async function startDeposit() {
         }
       });
     } else {
-      xrocketChoice = { payUrl: result.pay_url, amount, invoiceId: result.invoice_id, mode: "deposit", qrShown: false };
+      const providerName = result.provider === "cryptobot" ? "CryptoBot" : "xRocket";
+      xrocketChoice = {
+        payUrl: result.pay_url,
+        amount,
+        invoiceId: result.invoice_id,
+        mode: "deposit",
+        provider: result.provider,
+        qrShown: false,
+      };
       $("xrocket-choice-qr-panel").hidden = true;
       $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
+      $("external-payment-provider").textContent = providerName.toUpperCase();
+      $("xrocket-choice-description").textContent = `Счёт создан на ${amount.toFixed(2)} USDT. Перейдите в ${providerName} или оплатите по QR-коду.`;
+      $("xrocket-open-choice").textContent = `Перейти в ${providerName}`;
       $("xrocket-choice-modal").hidden = false;
-      status.textContent = "Ожидаем оплату xRocket...";
+      status.textContent = `Ожидаем оплату ${providerName}...`;
       pollDeposit(result.invoice_id, amount);
     }
   } catch (error) {

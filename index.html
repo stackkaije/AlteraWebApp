@@ -103,6 +103,7 @@
         <label class="deposit-custom"><span>Своя сумма, USDT</span><input id="deposit-amount" type="number" min="1" max="10000" step="0.01" value="100"></label>
         <div class="deposit-providers" role="group" aria-label="Способ пополнения">
           <button type="button" class="provider-option active" data-provider="xrocket">xRocket</button>
+          <button type="button" class="provider-option" data-provider="cryptobot">CryptoBot</button>
           <button type="button" class="provider-option" data-provider="stars">Telegram Stars</button>
         </div>
         <button id="deposit-submit" class="primary-button" type="button">Пополнить через xRocket</button>
@@ -180,24 +181,25 @@
       <div id="payment-options" class="payment-options">
         <button id="pay-balance" class="pay-button">Оплатить с баланса</button>
         <button id="pay-xrocket" class="pay-button secondary">Оплатить через xRocket</button>
+        <button id="pay-cryptobot" class="pay-button secondary">Оплатить через CryptoBot</button>
         <button id="pay-stars" class="pay-button secondary">Оплатить через Telegram Stars</button>
       </div>
       <section id="payment-waiting" class="payment-waiting" hidden aria-live="polite">
-        <div class="waiting-heading"><span class="waiting-icon" aria-hidden="true">◷</span><div><strong>Ожидаем оплату</strong><span id="waiting-order">Счёт xRocket создан</span></div></div>
-        <img id="payment-qr" class="payment-qr" alt="QR-код для оплаты xRocket">
+        <div class="waiting-heading"><span class="waiting-icon" aria-hidden="true">◷</span><div><strong>Ожидаем оплату</strong><span id="waiting-order">Счёт создан</span></div></div>
+        <img id="payment-qr" class="payment-qr" alt="QR-код для оплаты">
         <div class="waiting-details"><strong id="waiting-amount">0.00 USDT</strong><span id="waiting-expiry">Счёт действует 30 минут</span><span id="waiting-indicator" role="status">● Проверка каждые 4 секунды</span></div>
         <p id="waiting-status" class="form-status">Откройте счёт, оплатите его и дождитесь подтверждения.</p>
-        <div class="waiting-actions"><button id="waiting-open" class="primary-button" type="button">Открыть xRocket</button><button id="waiting-copy" class="secondary-button" type="button">Скопировать ссылку</button><button id="waiting-check" class="secondary-button" type="button">Проверить оплату</button></div>
+        <div class="waiting-actions"><button id="waiting-open" class="primary-button" type="button">Открыть оплату</button><button id="waiting-copy" class="secondary-button" type="button">Скопировать ссылку</button><button id="waiting-check" class="secondary-button" type="button">Проверить оплату</button></div>
       </section>
     </div>
   </section>
   <section id="xrocket-choice-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="xrocket-choice-title">
     <div class="info-modal-dialog xrocket-choice-dialog">
-      <div class="checkout-header"><div><span class="checkout-kicker">XROCKET</span><h2 id="xrocket-choice-title">Как оплатить?</h2></div><button id="xrocket-choice-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div>
-      <p class="checkout-description">Счёт создан на нужную сумму. Выберите удобный способ оплаты.</p>
+      <div class="checkout-header"><div><span id="external-payment-provider" class="checkout-kicker">ОПЛАТА</span><h2 id="xrocket-choice-title">Как оплатить?</h2></div><button id="xrocket-choice-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div>
+      <p id="xrocket-choice-description" class="checkout-description">Счёт создан на нужную сумму. Выберите удобный способ оплаты.</p>
       <div id="xrocket-choice-qr-panel" class="xrocket-choice-qr-panel" hidden><img id="xrocket-choice-qr" class="payment-qr" alt="QR-код для оплаты xRocket"><strong id="xrocket-choice-amount"></strong><span>Откройте камеру или сканер QR в кошельке</span></div>
       <div class="xrocket-choice-actions">
-        <button id="xrocket-open-choice" class="primary-button" type="button">Перейти в xRocket</button>
+        <button id="xrocket-open-choice" class="primary-button" type="button">Перейти к оплате</button>
         <button id="xrocket-qr-choice" class="secondary-button" type="button">Оплатить через QR-код</button>
       </div>
     </div>
@@ -205,6 +207,6 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button><button id="success-copy" class="secondary-button" type="button">Скопировать товар</button></div></div>
   </section>
-  <script src="./app.js?v=83"></script>
+  <script src="./app.js?v=84"></script>
 </body>
 </html>
