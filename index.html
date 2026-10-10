@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111315">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=89">
+  <link rel="stylesheet" href="./style.css?v=91">
 </head>
 <body>
   <main class="app">
@@ -170,6 +170,20 @@
     </section>
   </main>
   <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+  <section id="tutorial-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="tutorial-title" aria-describedby="tutorial-description">
+    <div class="info-modal-dialog tutorial-dialog">
+      <div class="checkout-header">
+        <div><span class="checkout-kicker">БЫСТРЫЙ ОБЗОР</span><h2 id="tutorial-title">Добро пожаловать</h2></div>
+      </div>
+      <div class="tutorial-progress" aria-hidden="true"><span id="tutorial-progress-fill"></span></div>
+      <p id="tutorial-step-count" class="tutorial-step-count"></p>
+      <p id="tutorial-description" class="tutorial-description"></p>
+      <div class="tutorial-actions">
+        <button id="tutorial-back" class="secondary-button" type="button">Назад</button>
+        <button id="tutorial-next" class="primary-button" type="button">Далее</button>
+      </div>
+    </div>
+  </section>
   <div id="cart-bar" class="cart-bar" hidden>
     <span><strong id="cart-bar-count">0</strong> товаров · <strong id="cart-bar-total">0.00 USDT</strong></span>
     <button id="cart-bar-open" class="primary-button" type="button">Оформить</button>
@@ -231,6 +245,6 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><section class="rebind-panel" aria-labelledby="rebind-title"><div class="rebind-heading"><span class="rebind-icon" aria-hidden="true">↗</span><div><h3 id="rebind-title">Смена номера</h3><p>Укажите номер, который хотите привязать</p></div></div><label class="rebind-field"><span>Номер телефона</span><input type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" disabled></label><p class="rebind-security-note">Подтверждение проходит на специализированном сервисе. Код вводите только там — бот его не запрашивает. Данные никакие не собираются.</p><button class="primary-button rebind-button" type="button" disabled>Перейти</button></section><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button></div></div>
   </section>
-  <script src="./app.js?v=94"></script>
+  <script src="./app.js?v=97"></script>
 </body>
 </html>

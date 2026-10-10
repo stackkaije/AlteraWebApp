@@ -83,6 +83,70 @@ $("waiting-copy").addEventListener("click", () => pendingPayment && copyText(pen
   .then(() => showToast("Ссылка скопирована")).catch(() => showToast("Не удалось скопировать ссылку", "error")));
 $("waiting-check").addEventListener("click", () => pendingPayment && checkPurchasePayment(true));
 $("product-back").addEventListener("click", () => showView("catalog-view"));
+$("tutorial-back").addEventListener("click", () => renderTutorialStep(tutorialStep - 1));
+$("tutorial-next").addEventListener("click", () => {
+  if (tutorialStep === tutorialSteps.length - 1) finishTutorial();
+  else renderTutorialStep(tutorialStep + 1);
+});
+const tutorialSteps = [
+  {
+    title: "Разделы магазина",
+    description: "Нижнее меню переключает основные разделы: Каталог — товары, Профиль — баланс и покупки, Избранное — сохранённые позиции, Корзина — выбранные товары."
+  },
+  {
+    title: "Поиск и каталог",
+    description: "Найдите товар по названию через поиск. Фильтры помогают выбрать категорию, порядок сортировки и показать только товары в наличии; кнопка ↻ обновляет список."
+  },
+  {
+    title: "Карточка товара",
+    description: "Откройте карточку, чтобы посмотреть описание, цену и наличие. Кнопка «Купить» ведёт к оформлению, а «В корзину» сохраняет товар для покупки вместе с другими."
+  },
+  {
+    title: "Корзина",
+    description: "Проверьте выбранные товары и количество, удалите лишнее и нажмите «Перейти к оплате», чтобы оформить заказ."
+  },
+  {
+    title: "Профиль и баланс",
+    description: "В профиле отображаются баланс и покупки. Там же можно пополнить баланс, выбрав сумму и способ оплаты."
+  },
+  {
+    title: "Избранное",
+    description: "Нажмите сердечко на товаре, чтобы сохранить его в избранное и быстро найти позже."
+  }
+];
+let tutorialStep = 0;
+const tutorialSeenKey = `altera-tutorial-seen-v2:${tg?.initDataUnsafe?.user?.id || "guest"}`;
+function renderTutorialStep(index) {
+  tutorialStep = Math.max(0, Math.min(index, tutorialSteps.length - 1));
+  const step = tutorialSteps[tutorialStep];
+  $("tutorial-title").textContent = step.title;
+  $("tutorial-description").textContent = step.description;
+  $("tutorial-step-count").textContent = `Шаг ${tutorialStep + 1} из ${tutorialSteps.length}`;
+  $("tutorial-progress-fill").style.width = `${((tutorialStep + 1) / tutorialSteps.length) * 100}%`;
+  $("tutorial-back").hidden = tutorialStep === 0;
+  $("tutorial-next").textContent = tutorialStep === tutorialSteps.length - 1 ? "Готово" : "Далее";
+}
+function startTutorial() {
+  renderTutorialStep(0);
+  $("tutorial-modal").hidden = false;
+  $("tutorial-next").focus();
+}
+function finishTutorial() {
+  $("tutorial-modal").hidden = true;
+  localStorage.setItem(tutorialSeenKey, "true");
+}
+document.addEventListener("keydown", (event) => {
+  if ($("tutorial-modal").hidden) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+  } else if (event.key === "ArrowRight") {
+    event.preventDefault();
+    $("tutorial-next").click();
+  } else if (event.key === "ArrowLeft" && tutorialStep > 0) {
+    event.preventDefault();
+    $("tutorial-back").click();
+  }
+});
 $("home-banner").addEventListener("click", (event) => {
   if (suppressBannerLinkClick && event.target.closest(".banner-support-link")) {
     event.preventDefault();
@@ -1512,6 +1576,9 @@ loadCatalog().then(() => {
   }
 });
 if (savedView !== "profile-view") loadProfile();
+if (localStorage.getItem(tutorialSeenKey) !== "true") {
+  window.setTimeout(startTutorial, 500);
+}
 
 function saveCatalogFilters() {
   localStorage.setItem("altera-catalog-filters", JSON.stringify({

@@ -379,6 +379,16 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .info-modal-dialog { width: min(100%, 520px); max-height: min(90vh, 700px); overflow-y: auto; overscroll-behavior: contain; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 25px 80px #0008; }
 .info-modal .checkout-header { align-items: center; }
 .info-modal-dialog > .checkout-header { margin-bottom: 14px; }
+.tutorial-dialog { max-width: 420px; }
+.tutorial-progress { height: 3px; overflow: hidden; margin: 8px 0 12px; border-radius: 3px; background: var(--soft); }
+.tutorial-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .2s ease; }
+.tutorial-step-count { margin: 0 0 7px; color: var(--muted); font-size: 12px; }
+.tutorial-description { min-height: 72px; margin: 0; line-height: 1.6; }
+.tutorial-actions, .tutorial-actions > div { display: flex; align-items: center; gap: 8px; }
+.tutorial-actions { justify-content: flex-end; margin-top: 20px; }
+.tutorial-actions button { min-height: 40px; }
+.tutorial-actions > div { justify-content: flex-end; }
+.tutorial-actions #tutorial-back { margin-right: auto; }
 .xrocket-choice-dialog { max-width: 420px; }
 .xrocket-choice-qr-panel { display: grid; justify-items: center; gap: 8px; margin: 16px 0 4px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); text-align: center; }
 .xrocket-choice-qr-panel .payment-qr { width: min(220px, 42vh); height: min(220px, 42vh); margin: 0; }
@@ -407,6 +417,8 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
   .card { transform: none; }
 }
 @media (max-width: 520px) {
+  .tutorial-dialog { padding: 17px; }
+  .tutorial-description { min-height: 88px; font-size: 14px; }
   #cart-view .section-heading { align-items: center; margin: 4px 0 14px; }
   #cart-view .section-heading h2 { font-size: 25px; }
   #cart-view .cart-clear { display: block; width: fit-content; margin: 0 0 12px auto; padding: 7px 10px; border: 1px solid rgba(255,118,118,.22); border-radius: 9px; background: rgba(255,118,118,.07); font-size: 12px; }
