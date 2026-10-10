@@ -83,6 +83,15 @@ $("waiting-copy").addEventListener("click", () => pendingPayment && copyText(pen
   .then(() => showToast("Ссылка скопирована")).catch(() => showToast("Не удалось скопировать ссылку", "error")));
 $("waiting-check").addEventListener("click", () => pendingPayment && checkPurchasePayment(true));
 $("product-back").addEventListener("click", () => showView("catalog-view"));
+$("filters-toggle").addEventListener("click", () => {
+  const toggle = $("filters-toggle");
+  const panel = $("filters-panel");
+  const expanded = toggle.getAttribute("aria-expanded") !== "true";
+  toggle.setAttribute("aria-expanded", String(expanded));
+  panel.classList.toggle("is-open", expanded);
+  panel.setAttribute("aria-hidden", String(!expanded));
+  panel.toggleAttribute("inert", !expanded);
+});
 $("tutorial-back").addEventListener("click", () => renderTutorialStep(tutorialStep - 1));
 $("tutorial-next").addEventListener("click", () => {
   if (tutorialStep === tutorialSteps.length - 1) finishTutorial();
@@ -531,13 +540,7 @@ function renderCatalog() {
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(item);
   });
-  const newItems = [...visible].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 3);
   const hasActiveFilters = Boolean(query) || group !== "all" || stockFilter !== "all" || sort !== "default";
-  const featured = (title, items, usedIds) => {
-    const uniqueItems = items.filter((item) => !usedIds.has(item.id));
-    uniqueItems.forEach((item) => usedIds.add(item.id));
-    return uniqueItems.length ? `<section class="featured-section"><div class="section-heading"><h2>${title}</h2></div><div class="group-items">${uniqueItems.map(cardTemplate).join("")}</div></section>` : "";
-  };
   const categoryView = group !== "all"
     ? `<section class="catalog-group"><h2 class="group-title">${escapeHtml(groupTitle(group))}</h2><div class="group-items">${visible.map(cardTemplate).join("")}</div></section>`
     : hasActiveFilters
@@ -547,16 +550,12 @@ function renderCatalog() {
       <div class="group-items">${items.map(cardTemplate).join("")}</div>
     </section>
   `).join("")
-      : (() => {
-      const featuredIds = new Set();
-      return featured("Новинки", newItems, featuredIds)
-        + [...groups.entries()].map(([key, items]) => `
+  : [...groups.entries()].map(([key, items]) => `
     <section class="catalog-group">
-      <h2 class="group-title">${escapeHtml(groupTitle(key))}</h2>
-      <div class="group-items">${items.map(cardTemplate).join("")}</div>
+  <h2 class="group-title">${escapeHtml(groupTitle(key))}</h2>
+  <div class="group-items">${items.map(cardTemplate).join("")}</div>
     </section>
   `).join("");
-    })();
   catalogNode.innerHTML = visible.length ? categoryView : `<div class="empty-state catalog-empty"><span class="empty-illustration" aria-hidden="true">⌕</span><strong>Ничего не нашли</strong><span>Попробуйте изменить запрос или сбросить фильтры.</span><button class="secondary-button" data-reset-filters type="button">Сбросить фильтры</button></div>`;
   statusNode.hidden = true;
 }

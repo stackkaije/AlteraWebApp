@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111315">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=91">
+  <link rel="stylesheet" href="./style.css?v=93">
 </head>
 <body>
   <main class="app">
@@ -51,34 +51,43 @@
           </div>
         </div>
       </section>
-      <div class="catalog-intro"><div><h2>Фильтры товаров</h2></div></div>
-      <div class="toolbar">
-        <div class="search-row">
-          <input id="search" list="product-suggestions" type="search" placeholder="Поиск товара" autocomplete="off">
-          <button id="refresh-catalog" class="refresh-button" type="button" aria-label="Обновить каталог">↻</button>
-        </div>
-        <datalist id="product-suggestions"></datalist>
-        <div id="popular-queries" class="popular-queries" aria-label="Популярные запросы"></div>
-        <div class="filters">
-          <label class="filter-field">
-            <span>Категория</span>
-            <select id="category-filter" aria-label="Фильтр категории">
-              <option value="all">Все категории</option>
-            </select>
-          </label>
-          <label class="filter-field">
-            <span>Сортировка</span>
-            <select id="sort" aria-label="Сортировка">
-              <option value="default">Сначала рекомендуемые</option>
-              <option value="price-asc">Цена: по возрастанию</option>
-              <option value="price-desc">Цена: по убыванию</option>
-              <option value="name">Название: А–Я</option>
-              <option value="stock">Больше в наличии</option>
-              <option value="rating">Лучший рейтинг</option>
-            </select>
-          </label>
-          <label class="filter-field"><span>Наличие</span><select id="stock-filter" aria-label="Фильтр наличия"><option value="all">Все товары</option><option value="in-stock">Только в наличии</option></select></label>
-          <button id="reset-filters" class="text-button filter-reset" type="button">Сбросить фильтры</button>
+      <div class="catalog-intro">
+        <button id="filters-toggle" class="filters-toggle" type="button" aria-expanded="false" aria-controls="filters-panel">
+          <span class="filters-toggle-title">Фильтры товара</span>
+          <span class="filters-chevron" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div id="filters-panel" class="filters-panel" aria-hidden="true" inert>
+        <div class="filters-panel-inner">
+          <div class="toolbar">
+            <div class="search-row">
+              <input id="search" list="product-suggestions" type="search" placeholder="Поиск товара" autocomplete="off">
+              <button id="refresh-catalog" class="refresh-button" type="button" aria-label="Обновить каталог">↻</button>
+            </div>
+            <datalist id="product-suggestions"></datalist>
+            <div id="popular-queries" class="popular-queries" aria-label="Популярные запросы"></div>
+            <div class="filters">
+              <label class="filter-field">
+                <span>Категория</span>
+                <select id="category-filter" aria-label="Фильтр категории">
+                  <option value="all">Все категории</option>
+                </select>
+              </label>
+              <label class="filter-field">
+                <span>Сортировка</span>
+                <select id="sort" aria-label="Сортировка">
+                  <option value="default">Сначала рекомендуемые</option>
+                  <option value="price-asc">Цена: по возрастанию</option>
+                  <option value="price-desc">Цена: по убыванию</option>
+                  <option value="name">Название: А–Я</option>
+                  <option value="stock">Больше в наличии</option>
+                  <option value="rating">Лучший рейтинг</option>
+                </select>
+              </label>
+              <label class="filter-field"><span>Наличие</span><select id="stock-filter" aria-label="Фильтр наличия"><option value="all">Все товары</option><option value="in-stock">Только в наличии</option></select></label>
+              <button id="reset-filters" class="text-button filter-reset" type="button">Сбросить фильтры</button>
+            </div>
+          </div>
         </div>
       </div>
       <p id="status" class="status">Загрузка каталога...</p>
@@ -245,6 +254,6 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><section class="rebind-panel" aria-labelledby="rebind-title"><div class="rebind-heading"><span class="rebind-icon" aria-hidden="true">↗</span><div><h3 id="rebind-title">Смена номера</h3><p>Укажите номер, который хотите привязать</p></div></div><label class="rebind-field"><span>Номер телефона</span><input type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" disabled></label><p class="rebind-security-note">Подтверждение проходит на специализированном сервисе. Код вводите только там — бот его не запрашивает. Данные никакие не собираются.</p><button class="primary-button rebind-button" type="button" disabled>Перейти</button></section><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button></div></div>
   </section>
-  <script src="./app.js?v=97"></script>
+  <script src="./app.js?v=99"></script>
 </body>
 </html>
