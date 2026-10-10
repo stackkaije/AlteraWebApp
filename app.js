@@ -127,7 +127,6 @@ $("favorites-buy-all").addEventListener("click", () => {
 });
 $("success-close").addEventListener("click", closeSuccess);
 $("success-history").addEventListener("click", () => { closeSuccess(); showView("history-view"); });
-$("success-copy").addEventListener("click", () => copyText($("success-items").textContent).then(() => showToast("Товар скопирован")));
 document.querySelectorAll(".amount-option").forEach((button) => button.addEventListener("click", () => {
   $("deposit-amount").value = button.dataset.amount;
   document.querySelectorAll(".amount-option").forEach((option) => option.classList.toggle("active", option === button));
@@ -854,7 +853,7 @@ function showPaymentWaiting(result) {
 
 function showSuccessScreen(orderNumber, itemText) {
   closeCheckout();
-  $("success-order").textContent = orderNumber ? `Заказ ${orderNumber} оплачен и выдан.` : "Заказ оплачен.";
+  $("success-order").textContent = orderNumber ? `Заказ ${orderNumber} оплачен.` : "Заказ оплачен.";
   $("success-items").textContent = itemText || "Товар доступен в разделе «Покупки».";
   $("purchase-success").hidden = false;
   $("purchase-success").classList.remove("success-visible");
