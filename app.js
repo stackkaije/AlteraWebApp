@@ -83,6 +83,60 @@ $("waiting-copy").addEventListener("click", () => pendingPayment && copyText(pen
   .then(() => showToast("Ссылка скопирована")).catch(() => showToast("Не удалось скопировать ссылку", "error")));
 $("waiting-check").addEventListener("click", () => pendingPayment && checkPurchasePayment(true));
 $("product-back").addEventListener("click", () => showView("catalog-view"));
+$("home-banner").addEventListener("click", (event) => {
+  if (suppressBannerLinkClick && event.target.closest(".banner-support-link")) {
+    event.preventDefault();
+    suppressBannerLinkClick = false;
+    return;
+  }
+  const button = event.target.closest("[data-banner-index]");
+  if (!button) return;
+  showBanner(Number(button.dataset.bannerIndex), true);
+});
+let activeBannerIndex = 0;
+let bannerPointerStart = null;
+let suppressBannerLinkClick = false;
+function showBanner(index, absolute = false) {
+  const slides = [...document.querySelectorAll(".banner-slide")];
+  const dots = [...document.querySelectorAll(".banner-dot")];
+  if (!slides.length) return;
+  activeBannerIndex = absolute
+    ? (index + slides.length) % slides.length
+    : (activeBannerIndex + index + slides.length) % slides.length;
+  slides.forEach((slide, slideIndex) => {
+    const active = slideIndex === activeBannerIndex;
+    slide.classList.toggle("is-active", active);
+    slide.setAttribute("aria-hidden", String(!active));
+    slide.toggleAttribute("inert", !active);
+  });
+  dots.forEach((dot, dotIndex) => {
+    const active = dotIndex === activeBannerIndex;
+    dot.classList.toggle("is-active", active);
+    if (active) dot.setAttribute("aria-current", "true");
+    else dot.removeAttribute("aria-current");
+  });
+}
+const homeBanner = $("home-banner");
+homeBanner.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)
+      || event.target.closest(".banner-controls")) return;
+  bannerPointerStart = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+  homeBanner.setPointerCapture(event.pointerId);
+});
+homeBanner.addEventListener("pointerup", (event) => {
+  if (!bannerPointerStart || bannerPointerStart.pointerId !== event.pointerId) return;
+  const deltaX = event.clientX - bannerPointerStart.x;
+  const deltaY = event.clientY - bannerPointerStart.y;
+  bannerPointerStart = null;
+  if (Math.abs(deltaX) < 45 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+  showBanner(deltaX < 0 ? 1 : -1);
+  suppressBannerLinkClick = true;
+  setTimeout(() => { suppressBannerLinkClick = false; }, 500);
+});
+homeBanner.addEventListener("pointercancel", () => { bannerPointerStart = null; });
+setInterval(() => {
+  if (!document.hidden && $("catalog-view").classList.contains("active-view")) showBanner(1);
+}, 8000);
 $("cart-checkout").addEventListener("click", () => openCartCheckout());
 $("cart-bar-open").addEventListener("click", () => openCartCheckout());
 $("refresh-catalog").addEventListener("click", () => {
