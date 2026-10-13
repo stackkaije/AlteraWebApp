@@ -486,20 +486,12 @@ async function openProductPage(item) {
       <div class="product-price-row"><strong>${Number(product.price).toFixed(2)} USDT</strong><span class="product-stock">${product.stock > 0 ? `${product.stock} шт. в наличии` : "Нет в наличии"}</span></div>
       <div class="product-updated">Обновлено: ${formatDate(product.updated_at || product.created_at || "")}</div>
       <div class="product-badges"><span class="badge">Моментальная выдача</span><span class="badge badge-warning product-stock-badge" ${product.stock > 0 ? "hidden" : ""}>Нет в наличии</span></div>
-      <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-collapsed"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div><button class="description-toggle" type="button" aria-expanded="false">Показать полностью</button></section>
-      <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
+      <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-expanded"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div></section>
+      <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.slice(0, 3).map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
       <div class="product-actions"><button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>${product.has_purchased_category === true ? "Купить снова" : "Купить"}</button><button id="product-cart" class="secondary-button" ${product.stock < 1 ? "disabled" : ""}>В корзину</button></div>
       <section class="product-section"><h2>Похожие товары</h2><div class="similar-products">${categories.filter((entry) => entry.id !== product.id && entry.group === product.group).slice(0, 3).map(cardTemplate).join("") || `<p class="muted">Похожих товаров пока нет.</p>`}</div></section>`;
     $("product-buy").addEventListener("click", () => openCheckout(product));
     $("product-cart").addEventListener("click", () => { addToCart(product.id); showToast("Товар добавлен в корзину"); });
-    const descriptionToggle = node.querySelector(".description-toggle");
-    const description = node.querySelector(".product-description");
-    descriptionToggle.addEventListener("click", () => {
-      const expanded = description.classList.toggle("is-expanded");
-      description.classList.toggle("is-collapsed", !expanded);
-      descriptionToggle.setAttribute("aria-expanded", String(expanded));
-      descriptionToggle.textContent = expanded ? "Свернуть описание" : "Показать полностью";
-    });
     if (canReview) $("review-submit").addEventListener("click", async () => {
       const button = $("review-submit");
       button.disabled = true;

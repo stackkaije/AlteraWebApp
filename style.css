@@ -1027,6 +1027,7 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
   font-size: 10px;
 }
 :root[data-design="night"] .card-bottom {
+  order: 2;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
@@ -1034,11 +1035,12 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
   padding-top: 10px;
   border-top: 1px solid #293a31;
 }
-:root[data-design="night"] .card-price-stock { display: grid; gap: 5px; min-width: 0; }
+:root[data-design="night"] .card-price-stock { display: grid; grid-column: 1; gap: 5px; min-width: 0; }
 :root[data-design="night"] .card-price-stock .price { font-size: 18px; line-height: 1.1; white-space: nowrap; }
 :root[data-design="night"] .card-price-stock .price small { color: #9eb3a3; font-size: 9px; }
-:root[data-design="night"] .card-price-stock .stock { max-width: 100%; padding: 3px 6px; font-size: 9px; }
+:root[data-design="night"] .card-price-stock .stock { max-width: 100%; justify-self: start; padding: 3px 6px; font-size: 9px; }
 :root[data-design="night"] .card-actions { display: grid; grid-template-columns: 1fr; gap: 5px; }
+:root[data-design="night"] .card-bottom .card-actions { grid-column: 2; grid-row: 1; }
 :root[data-design="night"] .card-actions button {
   min-height: 34px;
   padding: 7px 6px;
@@ -1221,6 +1223,17 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 :root[data-design="night"] .toast { border-color: #382a2b; background: #151111; }
 :root[data-design="night"] .notification-toggle.active { border-color: #9b4145; color: #ff9297; }
 :root[data-design="night"] :focus-visible { outline-color: #ff5962; }
+:root[data-design="night"] .card .description {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+:root[data-design="night"] .card .product-card-copy .description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 
 :root[data-design="night"] .tabs {
   right: 0;
