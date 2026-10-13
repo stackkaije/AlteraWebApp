@@ -476,19 +476,29 @@ async function openProductPage(item) {
           ? `<img src="./assets/mts-logo.jpg" alt="Логотип МТС">`
           : escapeHtml((product.name || "A").slice(0, 1).toUpperCase());
     node.innerHTML = `
-      <div class="product-hero">
-        <div class="product-image">${productImage}</div>
-        <div><p class="eyebrow">${escapeHtml(groupTitle(product.group || "other"))}</p>
-          <h1 id="product-title">${escapeHtml(product.name)}</h1>
-          <div class="product-rating">${rating ? `★ ${rating.toFixed(1)}` : "Новый товар"} <span>· ${Number(product.reviews_count || reviews.length)} отзывов</span></div>
+      <div class="product-drop">
+        <div class="product-drop-topline">
+          <span class="product-drop-category">${escapeHtml(groupTitle(product.group || "other"))}</span>
+          <span class="product-stock ${product.stock > 0 ? "is-available" : "is-empty"}">${product.stock > 0 ? `${product.stock} шт. в наличии` : "Нет в наличии"}</span>
+        </div>
+        <div class="product-drop-hero">
+          <div class="product-image">${productImage}</div>
+          <div class="product-drop-copy">
+            <h1 id="product-title">${escapeHtml(product.name)}</h1>
+            <div class="product-rating">${rating ? `★ ${rating.toFixed(1)}` : "Новый товар"} <span>· ${Number(product.reviews_count || reviews.length)} отзывов</span></div>
+          </div>
+        </div>
+        <div class="product-drop-purchase">
+          <div class="product-drop-price"><span>ЦЕНА</span><strong>${Number(product.price).toFixed(2)} <small>USDT</small></strong></div>
+          ${product.stock > 0 ? `<p class="product-drop-fulfillment">Моментальная выдача после оплаты</p>` : ""}
+          <div class="product-actions product-drop-actions">
+            <button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>${product.stock < 1 ? "Нет в наличии" : product.has_purchased_category === true ? "Купить снова" : "Купить сейчас"}</button>
+            <button id="product-cart" class="secondary-button" ${product.stock < 1 ? "disabled" : ""}>В корзину</button>
+          </div>
         </div>
       </div>
-      <div class="product-price-row"><strong>${Number(product.price).toFixed(2)} USDT</strong><span class="product-stock">${product.stock > 0 ? `${product.stock} шт. в наличии` : "Нет в наличии"}</span></div>
-      <div class="product-updated">Обновлено: ${formatDate(product.updated_at || product.created_at || "")}</div>
-      <div class="product-badges"><span class="badge">Моментальная выдача</span><span class="badge badge-warning product-stock-badge" ${product.stock > 0 ? "hidden" : ""}>Нет в наличии</span></div>
       <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-expanded"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div></section>
       <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.slice(0, 3).map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
-      <div class="product-actions"><button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>${product.has_purchased_category === true ? "Купить снова" : "Купить"}</button><button id="product-cart" class="secondary-button" ${product.stock < 1 ? "disabled" : ""}>В корзину</button></div>
       <section class="product-section"><h2>Похожие товары</h2><div class="similar-products">${categories.filter((entry) => entry.id !== product.id && entry.group === product.group).slice(0, 3).map(cardTemplate).join("") || `<p class="muted">Похожих товаров пока нет.</p>`}</div></section>`;
     $("product-buy").addEventListener("click", () => openCheckout(product));
     $("product-cart").addEventListener("click", () => { addToCart(product.id); showToast("Товар добавлен в корзину"); });
@@ -597,7 +607,10 @@ function renderCatalogSkeleton(count = 6) {
 function cardTemplate(item) {
   const rating = Number(item.rating || 0);
   const reviews = Number(item.reviews_count || 0);
-  const badges = (item.badges || []).slice(0, 2).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("");
+  const badges = [
+    `<span class="badge badge-auto-delivery">Автоматическая выдача</span>`,
+    ...(item.badges || []).slice(0, 2).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`)
+  ].join("");
   return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}" data-tilt-card>
     <div class="product-card-main">
       <div class="product-card-copy">
