@@ -1100,6 +1100,25 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 :root[data-design="night"] .banner-mark,
 :root[data-design="night"] .search-icon,
 :root[data-design="night"] .text-button { color: #ff5a62; }
+:root[data-design="night"] .banner-clover {
+  color: #ed343e;
+  font-size: 25px;
+  text-shadow: none;
+}
+:root[data-design="night"] .banner-lightning {
+  color: #ed343e;
+  font-size: 25px;
+  text-shadow: none;
+}
+:root[data-design="night"] .banner-clover,
+:root[data-design="night"] .banner-lightning {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  text-align: center;
+}
 :root[data-design="night"] .catalog-search .search-row,
 :root[data-design="night"] .filters-toggle,
 :root[data-design="night"] .filters-panel-inner > .toolbar {
