@@ -3,29 +3,49 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#111315">
+  <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=93">
+  <link rel="stylesheet" href="./style.css?v=100">
 </head>
 <body>
   <main class="app">
     <nav class="tabs" aria-label="Разделы магазина">
-      <button class="tab active" data-view="catalog-view" aria-controls="catalog-view"><span>Каталог</span></button>
-      <button class="tab" data-view="profile-view" aria-controls="profile-view"><span>Профиль</span></button>
-      <button class="tab" data-view="favorites-view" aria-controls="favorites-view"><span>Избранное</span></button>
-      <button class="tab cart-tab" data-view="cart-view" aria-controls="cart-view"><span>Корзина</span><span id="cart-count" hidden aria-label="Количество товаров в корзине">0</span></button>
+      <button class="tab active" data-view="catalog-view" aria-controls="catalog-view">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
+        <span>Каталог</span>
+      </button>
+      <button class="tab" data-view="profile-view" aria-controls="profile-view">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.2 3.2-5 7-5s6.3 1.8 7 5"/></svg>
+        <span>Профиль</span>
+      </button>
+      <button class="tab" data-view="favorites-view" aria-controls="favorites-view">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.4 8.8c0 4.1-8.4 10-8.4 10s-8.4-5.9-8.4-10a4.3 4.3 0 0 1 8.4-1.3 4.3 4.3 0 0 1 8.4 1.3Z"/></svg>
+        <span>Избранное</span>
+      </button>
+      <button class="tab cart-tab" data-view="cart-view" aria-controls="cart-view">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 4.5h2l2.1 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.5L21 8H6.1"/><circle cx="10" cy="19.5" r="1"/><circle cx="17.5" cy="19.5" r="1"/></svg>
+        <span>Корзина</span>
+        <span id="cart-count" hidden aria-label="Количество товаров в корзине">0</span>
+      </button>
     </nav>
 
     <section id="catalog-view" class="view active-view">
       <header class="topbar">
-        <div>
-          <h1>Каталог товаров</h1>
-        </div>
+        <h1>Выбери <span>своё.</span></h1>
+        <p class="catalog-tagline">Цифровые товары — просто и без лишних шагов</p>
       </header>
       <section id="home-banner" class="home-banner" aria-label="Информация о магазине" aria-roledescription="карусель">
         <div class="banner-slides">
-          <article class="banner-slide is-active" aria-roledescription="слайд" aria-label="1 из 2" aria-hidden="false">
+          <article class="banner-slide is-active" aria-roledescription="слайд" aria-label="1 из 3" aria-hidden="false">
+            <div class="banner-copy">
+              <span class="banner-kicker">НОВЫЙ ВИД · ТЕ ЖЕ ВОЗМОЖНОСТИ</span>
+              <strong>Очередной редизайн!</strong>
+              <span>Обновили каталог, карточки и навигацию — выбирать стало удобнее</span>
+            </div>
+            <span class="banner-mark" aria-hidden="true">✦</span>
+          </article>
+          <article class="banner-slide" aria-roledescription="слайд" aria-label="2 из 3" aria-hidden="true" inert>
             <div class="banner-copy">
               <span class="banner-kicker">БЫСТРО · БЕЗОПАСНО · 24/7</span>
               <strong>Оплата — выдача автоматически</strong>
@@ -33,7 +53,7 @@
             </div>
             <span class="banner-mark" aria-hidden="true">✦</span>
           </article>
-          <article class="banner-slide" aria-roledescription="слайд" aria-label="2 из 2" aria-hidden="true" inert>
+          <article class="banner-slide" aria-roledescription="слайд" aria-label="3 из 3" aria-hidden="true" inert>
             <a class="banner-support-link" href="https://t.me/HelpALTR" target="_blank" rel="noopener noreferrer">
               <span class="banner-copy">
                 <span class="banner-kicker">МЫ НА СВЯЗИ</span>
@@ -48,24 +68,31 @@
           <div class="banner-dots">
             <button class="banner-control banner-dot is-active" type="button" data-banner-index="0" aria-label="Баннер 1" aria-current="true"></button>
             <button class="banner-control banner-dot" type="button" data-banner-index="1" aria-label="Баннер 2"></button>
+            <button class="banner-control banner-dot" type="button" data-banner-index="2" aria-label="Баннер 3"></button>
           </div>
         </div>
       </section>
+      <div class="catalog-search">
+        <div class="search-row">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="search" list="product-suggestions" type="search" placeholder="Найти товар или категорию" autocomplete="off">
+          <button id="refresh-catalog" class="refresh-button" type="button" aria-label="Обновить каталог">↻</button>
+        </div>
+        <datalist id="product-suggestions"></datalist>
+        <div id="popular-queries" class="popular-queries" aria-label="Популярные запросы"></div>
+      </div>
       <div class="catalog-intro">
+        <div class="catalog-section-title">
+          <strong>Весь каталог</strong>
+        </div>
         <button id="filters-toggle" class="filters-toggle" type="button" aria-expanded="false" aria-controls="filters-panel">
-          <span class="filters-toggle-title">Фильтры товара</span>
-          <span class="filters-chevron" aria-hidden="true"></span>
+          <span class="filters-toggle-title">Фильтры</span>
+          <span class="filters-chevron" aria-hidden="true">⌄</span>
         </button>
       </div>
       <div id="filters-panel" class="filters-panel" aria-hidden="true" inert>
         <div class="filters-panel-inner">
           <div class="toolbar">
-            <div class="search-row">
-              <input id="search" list="product-suggestions" type="search" placeholder="Поиск товара" autocomplete="off">
-              <button id="refresh-catalog" class="refresh-button" type="button" aria-label="Обновить каталог">↻</button>
-            </div>
-            <datalist id="product-suggestions"></datalist>
-            <div id="popular-queries" class="popular-queries" aria-label="Популярные запросы"></div>
             <div class="filters">
               <label class="filter-field">
                 <span>Категория</span>

@@ -607,12 +607,17 @@ function cardTemplate(item) {
   const reviews = Number(item.reviews_count || 0);
   const badges = (item.badges || []).slice(0, 2).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("");
   return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}" data-tilt-card>
-    <div class="card-top"><span class="pill">${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
-    ${badges ? `<div class="badges">${badges}</div>` : ""}
-    <h2>${escapeHtml(item.name)}</h2>
-    <p class="description">${escapeHtml(item.description || "Моментальная выдача после оплаты")}</p>
-    <div class="product-rating" aria-label="Рейтинг ${rating.toFixed(1)} из 5">${rating ? `★ ${rating.toFixed(1)}` : "Новый товар"} <span>· ${reviews} отзывов</span></div>
-    <div class="meta"><div class="price">${Number(item.price).toFixed(2)} <small>USDT</small></div>
+    <div class="product-card-main">
+      <div class="product-card-copy">
+        <div class="card-top"><span class="pill">${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button></div>
+        ${badges ? `<div class="badges">${badges}</div>` : ""}
+        <h2>${escapeHtml(item.name)}</h2>
+        <p class="description">${escapeHtml(item.description || "Моментальная выдача после оплаты")}</p>
+        <div class="product-rating" aria-label="Рейтинг ${rating.toFixed(1)} из 5">${rating ? `★ ${rating.toFixed(1)}` : "Новый товар"} <span>· ${reviews} отзывов</span></div>
+      </div>
+    </div>
+    <div class="card-bottom">
+      <div class="card-price-stock"><div class="price">${Number(item.price).toFixed(2)} <small>USDT</small></div><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
       <div class="card-actions">${item.stock > 0 ? `<button class="cart-add" data-id="${item.id}">В корзину</button>` : ""}<button class="buy" data-id="${item.id}" ${item.stock < 1 ? "disabled" : ""}>${item.stock < 1 ? "Нет в наличии" : "Купить"}</button></div>
     </div>
   </article>`;
