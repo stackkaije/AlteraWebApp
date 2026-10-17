@@ -1392,3 +1392,20 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
     font-size: 9px;
   }
 }
+
+#sell-view {
+  display: grid;
+  min-height: min(62vh, 560px);
+  place-items: center;
+  padding: 12px 8px 76px;
+  text-align: center;
+}
+#sell-message {
+  max-width: 700px;
+  margin: 0;
+  color: #f0444c;
+  font-size: clamp(34px, 9vw, 44px);
+  font-weight: 700;
+  line-height: .98;
+  letter-spacing: -.065em;
+}

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=110">
+  <link rel="stylesheet" href="./style.css?v=112">
 </head>
 <body>
   <main class="app">
@@ -15,13 +15,17 @@
         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
         <span>Каталог</span>
       </button>
-      <button class="tab" data-view="profile-view" aria-controls="profile-view">
-        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.2 3.2-5 7-5s6.3 1.8 7 5"/></svg>
-        <span>Профиль</span>
-      </button>
       <button class="tab" data-view="favorites-view" aria-controls="favorites-view">
         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.4 8.8c0 4.1-8.4 10-8.4 10s-8.4-5.9-8.4-10a4.3 4.3 0 0 1 8.4-1.3 4.3 4.3 0 0 1 8.4 1.3Z"/></svg>
         <span>Избранное</span>
+      </button>
+      <button class="tab" data-view="sell-view" aria-controls="sell-view">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m3.5 12 8.5-8.5h8.5V12L12 20.5a2.1 2.1 0 0 1-3 0l-5.5-5.5a2.1 2.1 0 0 1 0-3Z"/><circle cx="16" cy="8" r="1.25"/></svg>
+        <span>Продать</span>
+      </button>
+      <button class="tab" data-view="profile-view" aria-controls="profile-view">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.7-3.2 3.2-5 7-5s6.3 1.8 7 5"/></svg>
+        <span>Профиль</span>
       </button>
       <button class="tab cart-tab" data-view="cart-view" aria-controls="cart-view">
         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 4.5h2l2.1 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.5L21 8H6.1"/><circle cx="10" cy="19.5" r="1"/><circle cx="17.5" cy="19.5" r="1"/></svg>
@@ -119,6 +123,10 @@
       </div>
       <p id="status" class="status">Загрузка каталога...</p>
       <section id="catalog" class="catalog"></section>
+    </section>
+
+    <section id="sell-view" class="view" hidden aria-labelledby="sell-message">
+      <h1 id="sell-message">Осталось совсем немного и мы откроем этот раздел... Подождите, пожалуйста</h1>
     </section>
 
     <section id="product-view" class="view" hidden aria-labelledby="product-title">
