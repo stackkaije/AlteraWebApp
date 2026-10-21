@@ -192,7 +192,7 @@ function showBanner(index, absolute = false) {
 const homeBanner = $("home-banner");
 homeBanner.addEventListener("pointerdown", (event) => {
   if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)
-      || event.target.closest(".banner-controls")) return;
+      || event.target.closest(".banner-controls, a, button")) return;
   bannerPointerStart = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
   homeBanner.setPointerCapture(event.pointerId);
 });
@@ -290,6 +290,118 @@ document.body.addEventListener("click", (event) => {
   if (retry.dataset.retry === "catalog") loadCatalog();
 });
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => showView(tab.dataset.view)));
+$("p2p-create-toggle").addEventListener("click", () => {
+  showToast("Отдел на доработке, ещё немного и он откроется.");
+});
+$("p2p-cancel-create").addEventListener("click", () => {
+  $("p2p-listing-form").reset();
+  $("p2p-listing-form").hidden = true;
+  $("p2p-form-status").textContent = "";
+});
+$("p2p-refresh").addEventListener("click", loadMarketplace);
+$("p2p-listing-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('[type="submit"]');
+  const status = $("p2p-form-status");
+  button.disabled = true;
+  status.textContent = "Публикуем объявление...";
+  try {
+    await waitForTelegramInitData();
+    await api("/api/p2p/listings", {
+      method: "POST",
+      body: JSON.stringify({
+        title: $("p2p-title-input").value,
+        description: $("p2p-description-input").value,
+        price: $("p2p-price-input").value,
+        legal_goods_confirmed: $("p2p-legal-confirm").checked
+      })
+    });
+    event.currentTarget.reset();
+    event.currentTarget.hidden = true;
+    status.textContent = "";
+    showToast("Объявление отправлено на проверку");
+    await loadMarketplace();
+  } catch (error) {
+    status.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+document.body.addEventListener("click", async (event) => {
+  const retryButton = event.target.closest("#p2p-retry");
+  if (retryButton) return loadMarketplace();
+  const disputeOpen = event.target.closest("[data-p2p-dispute-open]");
+  if (disputeOpen) {
+    const form = document.querySelector(`[data-dispute-form="${Number(disputeOpen.dataset.p2pDisputeOpen)}"]`);
+    if (form) form.hidden = !form.hidden;
+    return;
+  }
+  const listingCancel = event.target.closest("[data-p2p-cancel-listing]");
+  const buyButton = event.target.closest("[data-p2p-buy]");
+  const actionButton = event.target.closest("[data-p2p-action]");
+  if (!listingCancel && !buyButton && !actionButton) return;
+  const button = listingCancel || buyButton || actionButton;
+  button.disabled = true;
+  try {
+    await waitForTelegramInitData();
+    if (listingCancel) {
+      await api("/api/p2p/deals/action", {
+        method: "POST",
+        body: JSON.stringify({ action: "cancel-listing", listing_id: Number(listingCancel.dataset.p2pCancelListing) })
+      });
+      showToast("Объявление снято");
+    } else if (buyButton) {
+      const key = buyButton.dataset.idempotencyKey
+        || globalThis.crypto?.randomUUID?.()
+        || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+      buyButton.dataset.idempotencyKey = key;
+      const result = await api("/api/p2p/deals", {
+        method: "POST",
+        body: JSON.stringify({ listing_id: Number(buyButton.dataset.p2pBuy), idempotency_key: key })
+      });
+      delete buyButton.dataset.idempotencyKey;
+      showToast(`Оплата ${Number(result.total).toFixed(2)} USDT удерживается до подтверждения`);
+    } else {
+      const action = actionButton.dataset.p2pAction;
+      const payload = { action, deal_id: Number(actionButton.dataset.dealId) };
+      if (action.endsWith("-listing")) {
+        payload.listing_id = Number(actionButton.dataset.listingId);
+      } else if (action.startsWith("admin-")) {
+        const note = document.querySelector(`[data-p2p-resolution-note="${payload.deal_id}"]`);
+        payload.note = note?.value || "";
+      }
+      await api("/api/p2p/deals/action", { method: "POST", body: JSON.stringify(payload) });
+      showToast(action === "confirm" ? "Получение подтверждено" : "Статус сделки обновлён");
+    }
+    await loadMarketplace();
+  } catch (error) {
+    showToast(error.message, "error");
+    button.disabled = false;
+  }
+});
+document.body.addEventListener("submit", async (event) => {
+  const form = event.target.closest("[data-dispute-form]");
+  if (!form) return;
+  event.preventDefault();
+  const button = form.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    await waitForTelegramInitData();
+    await api("/api/p2p/deals/action", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "dispute",
+        deal_id: Number(form.dataset.disputeForm),
+        reason: form.querySelector("textarea").value
+      })
+    });
+    showToast("Спор открыт, средства остаются на удержании");
+    await loadMarketplace();
+  } catch (error) {
+    showToast(error.message, "error");
+    button.disabled = false;
+  }
+});
 function applySoundPreference(enabled) {
   const toggle = $("sound-toggle");
   if (!toggle) return;
@@ -423,6 +535,81 @@ async function api(path, options = {}) {
   return data;
 }
 
+async function loadMarketplace() {
+  const listingsNode = $("p2p-listings");
+  if (!listingsNode) return;
+  $("p2p-listings-status").textContent = "Загружаем объявления...";
+  try {
+    const data = await api("/api/p2p");
+    const money = (value) => `${Number(value || 0).toFixed(2)} USDT`;
+    const sellerName = (username) => username ? `@${escapeHtml(username)}` : "Пользователь Telegram";
+    listingsNode.innerHTML = data.listings.length ? data.listings.map((listing) => `
+      <article class="p2p-card">
+        <div class="p2p-card-top"><span>ГАРАНТ-СДЕЛКА</span><small>Продавец: ${sellerName(listing.seller)}</small></div>
+        <h3>${escapeHtml(listing.title)}</h3>
+        <p>${escapeHtml(listing.description)}</p>
+        <div class="p2p-card-buy"><strong>${money(listing.price)}</strong>
+          <button class="primary-button" type="button" data-p2p-buy="${Number(listing.id)}" ${listing.is_owner ? "disabled" : ""}>
+            ${listing.is_owner ? "Ваше объявление" : `Купить · ${money(listing.buyer_total)}`}
+          </button>
+        </div>
+        <small class="p2p-fee-note">Включая комиссию покупателя 3% · деньги удерживаются до подтверждения</small>
+      </article>`).join("") : `<div class="empty-state"><strong>Пока нет объявлений</strong><span>Можно создать первое — нажмите «＋ Объявление».</span></div>`;
+    $("p2p-listings-status").textContent = `Баланс: ${money(data.balance)} · комиссия покупателя ${Number(data.fee_percent)}%`;
+    $("p2p-own-listings").innerHTML = data.own_listings.length ? data.own_listings.map((listing) => `
+      <article class="p2p-own-card">
+        <div><strong>${escapeHtml(listing.title)}</strong><span>${money(listing.price)} · ${{pending: "на проверке", active: "активно", reserved: "зарезервировано", sold: "продано", cancelled: "снято", rejected: "отклонено"}[listing.status] || escapeHtml(listing.status)}</span></div>
+        ${listing.status === "active" ? `<button class="text-button" type="button" data-p2p-cancel-listing="${Number(listing.id)}">Снять</button>` : ""}
+      </article>`).join("") : `<p class="muted">У вас пока нет объявлений.</p>`;
+    $("p2p-deals").innerHTML = data.deals.length ? data.deals.map((deal) => {
+      const isBuyer = Number(deal.buyer_id) === Number(tg?.initDataUnsafe?.user?.id);
+      const statusText = {
+        funded: "Оплачено · ожидается выдача продавцом",
+        delivered: "Выдано · ожидается подтверждение покупателя",
+        disputed: "Открыт спор · средства удерживаются",
+        released: "Сделка завершена",
+        refunded: "Средства возвращены покупателю"
+      }[deal.status] || "Статус сделки";
+      const actions = deal.status === "funded" && !isBuyer
+        ? `<button class="primary-button" type="button" data-p2p-action="mark-delivered" data-deal-id="${Number(deal.id)}">Отметить как выданное</button>`
+        : deal.status === "delivered" && isBuyer
+          ? `<div class="p2p-deal-actions"><button class="primary-button" type="button" data-p2p-action="confirm" data-deal-id="${Number(deal.id)}">Подтвердить получение</button><button class="secondary-button" type="button" data-p2p-dispute-open="${Number(deal.id)}">Открыть спор</button></div><form class="p2p-dispute-form" data-dispute-form="${Number(deal.id)}" hidden><label><span>Что случилось?</span><textarea minlength="10" maxlength="1000" required></textarea></label><button class="secondary-button" type="submit">Отправить спор</button></form>`
+          : "";
+      return `<article class="p2p-deal-card">
+        <div class="p2p-card-top"><span>СДЕЛКА #${Number(deal.id)}</span><small>${escapeHtml(statusText)}</small></div>
+        <h3>${escapeHtml(deal.title)}</h3>
+        <p>${isBuyer ? `Продавец: ${sellerName(deal.seller)}` : `Покупатель: ${sellerName(deal.buyer)}`}</p>
+        <div class="p2p-deal-values"><span>Цена <strong>${money(deal.price)}</strong></span><span>Комиссия 3% <strong>${money(deal.fee)}</strong></span><span>Оплачено <strong>${money(deal.total)}</strong></span></div>
+        ${deal.deadline_at && ["funded", "delivered"].includes(deal.status) ? `<small class="p2p-deadline">Срок: ${escapeHtml(new Date(deal.deadline_at).toLocaleString("ru-RU"))}</small>` : ""}
+        ${deal.status === "disputed" && deal.dispute_reason ? `<p class="p2p-dispute-reason"><strong>Причина спора:</strong> ${escapeHtml(deal.dispute_reason)}</p>` : ""}
+        ${actions}
+      </article>`;
+    }).join("") : `<p class="muted">У вас пока нет сделок.</p>`;
+    $("p2p-moderation-section").hidden = !data.is_admin;
+    $("p2p-moderation").innerHTML = data.admin_pending_listings?.length ? data.admin_pending_listings.map((listing) => `
+      <article class="p2p-deal-card">
+        <div class="p2p-card-top"><span>ПРОВЕРКА · #${Number(listing.id)}</span><small>${money(listing.price)}</small></div>
+        <h3>${escapeHtml(listing.title)}</h3>
+        <p>Продавец: ${sellerName(listing.seller)}</p>
+        <p>${escapeHtml(listing.description)}</p>
+        <div class="p2p-deal-actions"><button class="primary-button" type="button" data-p2p-action="admin-approve-listing" data-listing-id="${Number(listing.id)}">Одобрить</button><button class="secondary-button" type="button" data-p2p-action="admin-reject-listing" data-listing-id="${Number(listing.id)}">Отклонить</button></div>
+      </article>`).join("") : `<p class="muted">Объявлений на проверке нет.</p>`;
+    $("p2p-admin-section").hidden = !data.is_admin;
+    $("p2p-admin-disputes").innerHTML = data.admin_disputes?.length ? data.admin_disputes.map((deal) => `
+      <article class="p2p-deal-card">
+        <div class="p2p-card-top"><span>СПОР · СДЕЛКА #${Number(deal.id)}</span><small>${money(deal.total)}</small></div>
+        <h3>${escapeHtml(deal.title)}</h3>
+        <p>Продавец: ${sellerName(deal.seller)} · Покупатель: ${sellerName(deal.buyer)}</p>
+        <p class="p2p-dispute-reason">${escapeHtml(deal.reason)}</p>
+        <label><span>Примечание к решению</span><textarea data-p2p-resolution-note="${Number(deal.id)}" minlength="5" maxlength="1000" placeholder="Кратко укажите основание решения"></textarea></label>
+        <div class="p2p-deal-actions"><button class="primary-button" type="button" data-p2p-action="admin-release" data-deal-id="${Number(deal.id)}">Выплатить продавцу</button><button class="secondary-button" type="button" data-p2p-action="admin-refund" data-deal-id="${Number(deal.id)}">Вернуть покупателю</button></div>
+      </article>`).join("") : `<p class="muted">Открытых споров нет.</p>`;
+  } catch (error) {
+    $("p2p-listings-status").textContent = `Не удалось загрузить P2P: ${error.message}`;
+    listingsNode.innerHTML = `<button class="secondary-button" type="button" id="p2p-retry">Повторить</button>`;
+  }
+}
+
 function showView(viewId) {
   const activeView = document.getElementById(viewId);
   if (!activeView?.classList.contains("view")) return;
@@ -443,6 +630,7 @@ function showView(viewId) {
   if (viewId === "history-view") loadHistory();
   if (viewId === "profile-view") loadProfile();
   if (viewId === "favorites-view") loadFavorites();
+  if (viewId === "sell-view") loadMarketplace();
 }
 
 async function openProductPage(item) {
@@ -607,10 +795,8 @@ function renderCatalogSkeleton(count = 6) {
 function cardTemplate(item) {
   const rating = Number(item.rating || 0);
   const reviews = Number(item.reviews_count || 0);
-  const badges = [
-    `<span class="badge badge-auto-delivery">Автоматическая выдача</span>`,
-    ...(item.badges || []).slice(0, 2).map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`)
-  ].join("");
+  const badges = (item.badges || []).slice(0, 2)
+    .map((badge) => `<span class="badge">${escapeHtml(badge)}</span>`).join("");
   return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}" data-tilt-card>
     <div class="product-card-main">
       <div class="product-card-copy">
@@ -1171,6 +1357,12 @@ async function loadProfile() {
     const data = await api("/api/profile");
     currentBalance = Number(data.balance);
     const user = data.user || {};
+    if ($("recovery-setting-status")) {
+      $("recovery-setting-status").textContent = data.recovery_phrase_ready
+        ? "Фраза настроена и подтверждена. По соображениям безопасности повторно посмотреть её нельзя."
+        : "Фраза восстановления ещё не настроена. Без неё нельзя привязать другой Telegram.";
+      $("recovery-create-button").hidden = Boolean(data.recovery_phrase_ready);
+    }
     const photoUrl = String(user.photo_url || "").trim();
     const avatarFallback = escapeHtml((user.first_name || user.username || "?").slice(0, 1).toUpperCase());
     const avatar = photoUrl
@@ -1572,22 +1764,230 @@ async function loadCatalog({ showLoading = true } = {}) {
   }
 }
 
-const savedView = localStorage.getItem("altera-active-view");
-const savedViewNode = savedView && document.getElementById(savedView);
-if (savedViewNode?.classList.contains("view")) showView(savedView);
-if (savedView === "product-view") $("product-detail").innerHTML = `<div class="skeleton skeleton-product"></div>`;
-loadCatalog().then(() => {
-  if (savedView === "product-view") {
-    const productId = Number(localStorage.getItem("altera-active-product"));
-    const product = categories.find((item) => item.id === productId);
-    if (product) openProductPage(product);
-    else showView("catalog-view");
+let appInitialized = false;
+let activeRecoveryPhrase = "";
+
+function initializeApp() {
+  $("account-gate").hidden = true;
+  if (appInitialized) return;
+  appInitialized = true;
+  const savedView = localStorage.getItem("altera-active-view");
+  const savedViewNode = savedView && document.getElementById(savedView);
+  if (savedViewNode?.classList.contains("view")) showView(savedView);
+  if (savedView === "product-view") $("product-detail").innerHTML = `<div class="skeleton skeleton-product"></div>`;
+  loadCatalog().then(() => {
+    if (savedView === "product-view") {
+      const productId = Number(localStorage.getItem("altera-active-product"));
+      const product = categories.find((item) => item.id === productId);
+      if (product) openProductPage(product);
+      else showView("catalog-view");
+    }
+  });
+  if (savedView !== "profile-view") loadProfile();
+  if (localStorage.getItem(tutorialSeenKey) !== "true") {
+    window.setTimeout(startTutorial, 500);
+  }
+}
+
+function showAccountChoice() {
+  $("account-gate").hidden = false;
+  $("account-choice").hidden = false;
+  $("account-login-form").hidden = true;
+  $("account-backup").hidden = true;
+  $("account-gate-title").textContent = "Приветствуем вас в Altera.";
+}
+
+async function beginRecoverySetup() {
+  $("account-gate").hidden = false;
+  $("account-choice").hidden = true;
+  $("account-login-form").hidden = true;
+  $("account-backup").hidden = false;
+  $("account-recovery-phrase-step").hidden = false;
+  $("account-recovery-check-step").hidden = true;
+  $("account-gate-title").textContent = "Сохраните фразу восстановления";
+  $("account-recovery-status").textContent = "";
+  try {
+    const data = await api("/api/account/recovery/start", { method: "POST", body: "{}" });
+    activeRecoveryPhrase = data.phrase;
+    $("account-recovery-words").replaceChildren(...data.phrase.split(" ").map((word) => {
+      const item = document.createElement("li");
+      item.textContent = word;
+      return item;
+    }));
+  } catch (error) {
+    $("account-recovery-status").textContent = error.message || "Не удалось создать фразу восстановления.";
+  }
+}
+
+async function beginRecoveryChallenge() {
+  const continueButton = $("account-recovery-continue");
+  continueButton.disabled = true;
+  $("account-recovery-status").textContent = "";
+  try {
+    const data = await api("/api/account/recovery/challenge", { method: "POST", body: "{}" });
+    $("account-recovery-answers").replaceChildren(...data.positions.map((position) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "recovery-answer";
+      const label = document.createElement("label");
+      label.htmlFor = `recovery-word-${position}`;
+      label.textContent = `Слово №${position}`;
+      const input = document.createElement("input");
+      input.id = `recovery-word-${position}`;
+      input.dataset.position = String(position);
+      input.autocomplete = "off";
+      input.autocapitalize = "none";
+      input.spellcheck = false;
+      input.required = true;
+      wrapper.append(label, input);
+      return wrapper;
+    }));
+    activeRecoveryPhrase = "";
+    $("account-recovery-words").replaceChildren();
+    $("account-recovery-phrase-step").hidden = true;
+    $("account-recovery-check-step").hidden = false;
+    $("account-gate-title").textContent = "Проверьте сохранение фразы";
+    $("account-recovery-check-status").textContent = "";
+    document.querySelector("#account-recovery-answers input").focus();
+  } catch (error) {
+    $("account-recovery-status").textContent = error.message || "Не удалось перейти к проверке.";
+    continueButton.disabled = false;
+  }
+}
+
+$("account-login-open").addEventListener("click", () => {
+  $("account-choice").hidden = true;
+  $("account-login-form").hidden = false;
+  if (!$("account-login-words").childElementCount) {
+    $("account-login-words").replaceChildren(...Array.from({ length: 12 }, (_, index) => {
+      const wrapper = document.createElement("label");
+      wrapper.className = "login-recovery-word";
+      const number = document.createElement("span");
+      number.textContent = String(index + 1);
+      const input = document.createElement("input");
+      input.type = "text";
+      input.name = `word-${index + 1}`;
+      input.autocomplete = "off";
+      input.autocapitalize = "none";
+      input.spellcheck = false;
+      input.maxLength = 16;
+      input.setAttribute("aria-label", `Слово ${index + 1}`);
+      input.required = true;
+      wrapper.append(number, input);
+      return wrapper;
+    }));
+    const inputs = [...$("account-login-words").querySelectorAll("input")];
+    inputs.forEach((input, index) => {
+      input.addEventListener("input", () => {
+        input.value = input.value.trim().split(/\s+/).pop().toLowerCase();
+      });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Backspace" && !input.value && index > 0) inputs[index - 1].focus();
+        if ((event.key === " " || event.key === "Enter") && index < inputs.length - 1) {
+          event.preventDefault();
+          inputs[index + 1].focus();
+        }
+      });
+      input.addEventListener("paste", (event) => {
+        const pastedWords = event.clipboardData?.getData("text").trim().split(/\s+/) || [];
+        if (pastedWords.length < 2) return;
+        event.preventDefault();
+        pastedWords.slice(0, 12).forEach((word, wordIndex) => {
+          if (inputs[wordIndex]) inputs[wordIndex].value = word.toLowerCase();
+        });
+        inputs[Math.min(pastedWords.length, 11)].focus();
+      });
+    });
+  }
+  $("account-login-words").querySelector("input").focus();
+});
+document.querySelector("[data-account-back]").addEventListener("click", showAccountChoice);
+$("recovery-create-button").addEventListener("click", beginRecoverySetup);
+$("account-recovery-continue").addEventListener("click", beginRecoveryChallenge);
+$("account-register").addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    await api("/api/account/register", { method: "POST", body: "{}" });
+    initializeApp();
+  } catch (error) {
+    showToast(error.message || "Не удалось создать аккаунт.", "error");
+    button.disabled = false;
   }
 });
-if (savedView !== "profile-view") loadProfile();
-if (localStorage.getItem(tutorialSeenKey) !== "true") {
-  window.setTimeout(startTutorial, 500);
+$("account-login-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const status = $("account-login-status");
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  status.textContent = "";
+  button.disabled = true;
+  try {
+    await api("/api/account/login", {
+      method: "POST",
+      body: JSON.stringify({
+        phrase: [...$("account-login-words").querySelectorAll("input")]
+          .map((input) => input.value.trim().toLowerCase())
+          .join(" ")
+      })
+    });
+    initializeApp();
+  } catch (error) {
+    status.textContent = error.message || "Не удалось привязать Telegram.";
+    button.disabled = false;
+  }
+});
+$("account-copy-phrase").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(activeRecoveryPhrase);
+    showToast("Фраза скопирована. Сохраните её в надёжном месте.", "success");
+  } catch {
+    showToast("Не удалось скопировать. Запишите фразу вручную.", "error");
+  }
+});
+$("account-recovery-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const status = $("account-recovery-check-status");
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  const answers = [...$("account-recovery-answers").querySelectorAll("input")].map((input) => ({
+    position: Number(input.dataset.position),
+    word: input.value
+  }));
+  status.textContent = "";
+  button.disabled = true;
+  try {
+    await api("/api/account/recovery/confirm", { method: "POST", body: JSON.stringify({ answers }) });
+    activeRecoveryPhrase = "";
+    $("account-recovery-words").replaceChildren();
+    $("recovery-setting-status").textContent = "Фраза подтверждена. Повторно посмотреть её нельзя.";
+    initializeApp();
+  } catch (error) {
+    status.textContent = error.message || "Не удалось подтвердить фразу.";
+    button.disabled = false;
+  }
+});
+
+async function initializeAccountAccess() {
+  if (!await waitForTelegramInitData()) {
+    initializeApp();
+    return;
+  }
+  try {
+    const status = await api("/api/account/status");
+    if (status.needs_choice) {
+      showAccountChoice();
+    } else {
+      initializeApp();
+    }
+  } catch (error) {
+    $("account-gate").hidden = false;
+    $("account-choice").hidden = true;
+    $("account-login-form").hidden = true;
+    $("account-backup").hidden = false;
+    $("account-gate-title").textContent = "Не удалось проверить аккаунт";
+    $("account-recovery-status").textContent = error.message || "Проверьте соединение и перезапустите приложение.";
+  }
 }
+
+initializeAccountAccess();
 
 function saveCatalogFilters() {
   localStorage.setItem("altera-catalog-filters", JSON.stringify({
