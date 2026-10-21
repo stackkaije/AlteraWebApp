@@ -415,8 +415,13 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .account-gate { position: fixed; z-index: 100; inset: 0; display: grid; align-items: center; justify-items: center; overflow: auto; padding: 18px; background: rgba(0,0,0,.82); backdrop-filter: blur(12px); }
 .account-gate-card { width: min(100%, 440px); max-height: 100%; overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); box-shadow: 0 20px 70px #000b; }
 .account-gate-card > * + * { margin-top: 16px; }
+.account-gate-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.account-gate-close { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 23px; line-height: 1; transition: border-color .2s, color .2s, background .2s; }
+.account-gate-close:hover { border-color: var(--accent); background: rgba(124,231,211,.08); color: var(--accent); }
 .account-gate-card p, .account-gate-card label { color: var(--muted); font-size: 13px; line-height: 1.5; }
 .account-gate-card .accent-button, .account-gate-card .secondary-button { width: 100%; margin-top: 10px; }
+.settings-card #recovery-create-button { display: inline-flex; width: auto; min-height: 38px; margin-top: 14px; padding: 8px 13px; border-radius: 10px; font-size: 12px; }
+.settings-card #recovery-create-button[hidden] { display: none; }
 .account-gate-card textarea, .recovery-answer input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; background: var(--surface); color: var(--text); font: inherit; }
 .account-gate-card textarea:focus, .recovery-answer input:focus { border-color: var(--accent); }
 .recovery-words { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0; padding: 0; list-style: none; counter-reset: seed-word; }
@@ -1435,6 +1440,9 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .p2p-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 17px 0 7px; }
 .p2p-section-heading .text-button { padding: 6px; }
 .p2p-list { display: grid; gap: 10px; }
+.p2p-empty-state { display: grid; justify-items: center; gap: 7px; }
+.p2p-empty-state strong { display: block; color: var(--text); font-size: 16px; }
+.p2p-empty-state span { display: block; max-width: 280px; line-height: 1.5; }
 .p2p-card { border-color: #392526; background: linear-gradient(145deg, #151011, #0b0b0c 72%); }
 .p2p-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #ff727c; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
 .p2p-card-top small { color: #999092; font-size: 10px; font-weight: 500; letter-spacing: 0; text-align: right; }

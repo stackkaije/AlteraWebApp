@@ -554,7 +554,7 @@ async function loadMarketplace() {
           </button>
         </div>
         <small class="p2p-fee-note">Включая комиссию покупателя 3% · деньги удерживаются до подтверждения</small>
-      </article>`).join("") : `<div class="empty-state"><strong>Пока нет объявлений</strong><span>Можно создать первое — нажмите «＋ Объявление».</span></div>`;
+      </article>`).join("") : `<div class="empty-state p2p-empty-state"><strong>Пока нет объявлений</strong><span>Можно создать первое — нажмите «＋ Объявление».</span></div>`;
     $("p2p-listings-status").textContent = `Баланс: ${money(data.balance)} · комиссия покупателя ${Number(data.fee_percent)}%`;
     $("p2p-own-listings").innerHTML = data.own_listings.length ? data.own_listings.map((listing) => `
       <article class="p2p-own-card">
@@ -1794,6 +1794,7 @@ function showAccountChoice() {
   $("account-choice").hidden = false;
   $("account-login-form").hidden = true;
   $("account-backup").hidden = true;
+  $("account-recovery-close").hidden = true;
   $("account-gate-title").textContent = "Приветствуем вас в Altera.";
 }
 
@@ -1802,10 +1803,13 @@ async function beginRecoverySetup() {
   $("account-choice").hidden = true;
   $("account-login-form").hidden = true;
   $("account-backup").hidden = false;
+  $("account-recovery-close").hidden = false;
   $("account-recovery-phrase-step").hidden = false;
   $("account-recovery-check-step").hidden = true;
   $("account-gate-title").textContent = "Сохраните фразу восстановления";
   $("account-recovery-status").textContent = "";
+  $("account-recovery-continue").disabled = false;
+  $("account-recovery-cancel").disabled = false;
   try {
     const data = await api("/api/account/recovery/start", { method: "POST", body: "{}" });
     activeRecoveryPhrase = data.phrase;
@@ -1816,6 +1820,30 @@ async function beginRecoverySetup() {
     }));
   } catch (error) {
     $("account-recovery-status").textContent = error.message || "Не удалось создать фразу восстановления.";
+  }
+}
+
+async function cancelRecoverySetup() {
+  const closeButton = $("account-recovery-close");
+  const cancelButton = $("account-recovery-cancel");
+  closeButton.disabled = true;
+  cancelButton.disabled = true;
+  try {
+    await api("/api/account/recovery/cancel", { method: "POST", body: "{}" });
+    activeRecoveryPhrase = "";
+    $("account-recovery-words").replaceChildren();
+    $("account-recovery-answers").replaceChildren();
+    $("account-recovery-form").reset();
+    $("account-recovery-status").textContent = "";
+    $("account-recovery-check-status").textContent = "";
+    $("account-recovery-close").hidden = true;
+    $("account-backup").hidden = true;
+    $("account-gate").hidden = true;
+  } catch (error) {
+    showToast(error.message || "Не удалось отменить действие. Попробуйте ещё раз.", "error");
+  } finally {
+    closeButton.disabled = false;
+    cancelButton.disabled = false;
   }
 }
 
@@ -1847,6 +1875,7 @@ async function beginRecoveryChallenge() {
     $("account-recovery-check-step").hidden = false;
     $("account-gate-title").textContent = "Проверьте сохранение фразы";
     $("account-recovery-check-status").textContent = "";
+    $("account-recovery-cancel").disabled = false;
     document.querySelector("#account-recovery-answers input").focus();
   } catch (error) {
     $("account-recovery-status").textContent = error.message || "Не удалось перейти к проверке.";
@@ -1903,6 +1932,8 @@ $("account-login-open").addEventListener("click", () => {
 document.querySelector("[data-account-back]").addEventListener("click", showAccountChoice);
 $("recovery-create-button").addEventListener("click", beginRecoverySetup);
 $("account-recovery-continue").addEventListener("click", beginRecoveryChallenge);
+$("account-recovery-close").addEventListener("click", cancelRecoverySetup);
+$("account-recovery-cancel").addEventListener("click", cancelRecoverySetup);
 $("account-register").addEventListener("click", async (event) => {
   const button = event.currentTarget;
   button.disabled = true;
