@@ -258,6 +258,12 @@ document.querySelectorAll(".amount-option").forEach((button) => button.addEventL
   $("deposit-amount").value = button.dataset.amount;
   document.querySelectorAll(".amount-option").forEach((option) => option.classList.toggle("active", option === button));
 }));
+$("deposit-amount").addEventListener("input", () => {
+  const amount = Number($("deposit-amount").value);
+  document.querySelectorAll(".amount-option").forEach((option) => {
+    option.classList.toggle("active", Number(option.dataset.amount) === amount && Number.isFinite(amount));
+  });
+});
 document.querySelectorAll(".provider-option").forEach((button) => button.addEventListener("click", () => {
   depositProvider = button.dataset.provider;
   document.querySelectorAll(".provider-option").forEach((option) => option.classList.toggle("active", option === button));
@@ -667,7 +673,7 @@ async function openProductPage(item) {
       <div class="product-drop">
         <div class="product-drop-topline">
           <span class="product-drop-category">${escapeHtml(groupTitle(product.group || "other"))}</span>
-          <span class="product-stock ${product.stock > 0 ? "is-available" : "is-empty"}">${product.stock > 0 ? `${product.stock} шт. в наличии` : "Нет в наличии"}</span>
+          <span class="product-stock ${product.stock > 0 ? "is-available" : "is-empty"}">${product.stock > 0 ? `В наличии: ${product.stock}шт` : "Нет в наличии"}</span>
         </div>
         <div class="product-drop-hero">
           <div class="product-image">${productImage}</div>
@@ -808,7 +814,7 @@ function cardTemplate(item) {
       </div>
     </div>
     <div class="card-bottom">
-      <div class="card-price-stock"><div class="price">${Number(item.price).toFixed(2)} <small>USDT</small></div><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии · ${item.stock} шт.` : "Нет в наличии"}</span></div>
+      <div class="card-price-stock"><div class="price">${Number(item.price).toFixed(2)} <small>USDT</small></div><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии: ${item.stock}шт` : "Нет в наличии"}</span></div>
       <div class="card-actions">${item.stock > 0 ? `<button class="cart-add" data-id="${item.id}">В корзину</button>` : ""}<button class="buy" data-id="${item.id}" ${item.stock < 1 ? "disabled" : ""}>${item.stock < 1 ? "Нет в наличии" : "Купить"}</button></div>
     </div>
   </article>`;
@@ -1724,7 +1730,7 @@ function applyPurchasedStock(lines) {
   if (product) {
     const inStock = Number(product.stock) > 0;
     const stockLabel = $("product-detail").querySelector(".product-stock");
-    if (stockLabel) stockLabel.textContent = inStock ? `${product.stock} шт. в наличии` : "Нет в наличии";
+    if (stockLabel) stockLabel.textContent = inStock ? `В наличии: ${product.stock}шт` : "Нет в наличии";
     const stockBadge = $("product-detail").querySelector(".product-stock-badge");
     if (stockBadge) stockBadge.hidden = inStock;
     const buyButton = $("product-buy");
