@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=149">
+  <link rel="stylesheet" href="./style.css?v=156">
 </head>
 <body>
   <main class="app">
@@ -76,17 +76,14 @@
       <header class="topbar">
         <h1>Выбери <span>своё.</span></h1>
       </header>
-      <section id="home-banner" class="home-banner" aria-label="Информация о магазине" aria-roledescription="карусель">
+      <section class="update-banner" aria-label="Обновление">
+        <button id="update-news-open" class="update-banner-button" type="button" aria-label="Открыть новости: обновление от 24.10.2026">
+          <img src="./assets/update-banner.png" alt="Обновление" width="1280" height="360">
+        </button>
+      </section>
+      <section class="home-banner" aria-label="Поддержка">
         <div class="banner-slides">
-          <article class="banner-slide is-active" aria-roledescription="слайд" aria-label="1 из 2" aria-hidden="false">
-            <div class="banner-copy">
-              <span class="banner-kicker">БЫСТРО · БЕЗОПАСНО · 24/7</span>
-              <strong>Оплата — выдача автоматически</strong>
-              <span>История заказов и поддержка всегда под рукой</span>
-            </div>
-            <span class="banner-mark banner-lightning" aria-hidden="true">⚡</span>
-          </article>
-          <article class="banner-slide" aria-roledescription="слайд" aria-label="2 из 2" aria-hidden="true" inert>
+          <article class="banner-slide is-active">
             <a class="banner-support-link" href="https://t.me/HelpALTR" target="_blank" rel="noopener noreferrer">
               <span class="banner-copy">
                 <span class="banner-kicker">МЫ НА СВЯЗИ</span>
@@ -96,12 +93,6 @@
               <span class="banner-mark" aria-hidden="true">↗</span>
             </a>
           </article>
-        </div>
-        <div class="banner-controls" aria-label="Переключение баннеров">
-          <div class="banner-dots">
-            <button class="banner-control banner-dot is-active" type="button" data-banner-index="0" aria-label="Баннер 1" aria-current="true"></button>
-            <button class="banner-control banner-dot" type="button" data-banner-index="1" aria-label="Баннер 2"></button>
-          </div>
         </div>
       </section>
       <div class="catalog-search">
@@ -360,6 +351,44 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><section class="rebind-panel" aria-labelledby="rebind-title"><div class="rebind-heading"><span class="rebind-icon" aria-hidden="true">↗</span><div><h3 id="rebind-title">Смена номера</h3><p>Укажите номер, который хотите привязать</p></div></div><label class="rebind-field"><span>Номер телефона</span><input type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" disabled></label><p class="rebind-security-note">Подтверждение проходит на специализированном сервисе. Код вводите только там — бот его не запрашивает. Данные никакие не собираются.</p><button class="primary-button rebind-button" type="button" disabled>Перейти</button></section><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button></div></div>
   </section>
-  <script src="./app.js?v=131"></script>
+  <section id="news-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-label="Обновление от 24.10.2026">
+    <div class="info-modal-dialog news-dialog">
+      <div class="checkout-header news-header">
+        <button id="news-modal-close" class="modal-close" type="button" aria-label="Закрыть">×</button>
+      </div>
+      <article class="news-post">
+        <h3>Обновление от 24.10.2026</h3>
+        <ul>
+          <li>Переработали весь визуал как @AlteraneBot так и MiniApp;</li>
+          <li>Добавили возможность менять сумму, не удаляя старый счёт;</li>
+          <li>Изменили вид отображения профиля, реферальной программы, истории покупок;</li>
+          <li>Удалили в профиле плашку «USDT потрачено»;</li>
+          <li>Удалили в профиле «Отзывов оставлено»;</li>
+          <li>Удалили в настройках «Звуки взаимодействия».</li>
+        </ul>
+      </article>
+      <hr class="news-divider">
+      <article class="news-post">
+        <h3><strong>Обновление</strong> от 21.10.2026</h3>
+        <ul>
+          <li>Добавили возможность переносить профиль на другой Telegram-аккаунт с помощью 12-словной сид-фразы;</li>
+          <li>Улучшили визуальную составляющую @AlteraneBot (не WebApp) — можете проверить сами;</li>
+          <li>Немного изменили визуал WebApp: кнопка «Каталог» теперь находится по центру, третьей в меню;</li>
+          <li>Вернули долгожданные позиции «Чистых госуслуг»;</li>
+          <li>Убрали обязательную проверку FAQ. Позже её доработаем и перенесём в другое место.</li>
+        </ul>
+      </article>
+      <hr class="news-divider">
+      <article class="news-post">
+        <h3>Обновление от 20.10.2026</h3>
+        <ul>
+          <li>Исправили баг, связанный с обучением MiniApp: после полного прохождения оно больше не открывается повторно при следующем заходе;</li>
+          <li>Исправили создание QR-кода для оплаты: товар резервируется за вами, пока активен счёт;</li>
+          <li>Ускорили загрузку и повысили отзывчивость MiniApp.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+  <script src="./app.js?v=133"></script>
 </body>
 </html>
