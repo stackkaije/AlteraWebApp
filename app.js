@@ -133,7 +133,7 @@ const tutorialSteps = [
   },
   {
     title: "Избранное",
-    description: "Нажмите сердечко на товаре, чтобы сохранить его в избранное и быстро найти позже."
+    description: "Нажмите звездочку на товаре, чтобы сохранить его в избранное и быстро найти позже."
   }
 ];
 let tutorialStep = 0;
@@ -751,7 +751,7 @@ function cardTemplate(item) {
   return `<article class="card" data-product-id="${item.id}" tabindex="0" aria-label="${escapeHtml(item.name)}" data-tilt-card>
     <div class="product-card-main">
       <div class="product-card-copy">
-        <div class="card-top"><span class="pill">${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}">${item.favorite ? "♥" : "♡"}</button></div>
+        <div class="card-top"><span class="pill">${escapeHtml(groupTitle(item.group || "other"))}</span><button class="favorite-button ${item.favorite ? "is-favorite" : ""}" data-favorite-id="${item.id}" aria-label="${item.favorite ? "Удалить из избранного" : "Добавить в избранное"}" aria-pressed="${Boolean(item.favorite)}">${favoriteIcon(item.favorite)}</button></div>
         ${badges ? `<div class="badges">${badges}</div>` : ""}
         <h2>${escapeHtml(item.name)}</h2>
         <p class="description">${escapeHtml(item.description || "Моментальная выдача после оплаты")}</p>
@@ -763,6 +763,10 @@ function cardTemplate(item) {
       <div class="card-actions">${item.stock > 0 ? `<button class="cart-add" data-id="${item.id}">В корзину</button>` : ""}<button class="buy" data-id="${item.id}" ${item.stock < 1 ? "disabled" : ""}>${item.stock < 1 ? "Нет в наличии" : "Купить"}</button></div>
     </div>
   </article>`;
+}
+
+function favoriteIcon(isFavorite) {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.9L12 3.5Z" ${isFavorite ? 'fill="currentColor"' : 'fill="none"'} stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 function groupTitle(group) {
@@ -1392,7 +1396,7 @@ async function loadFavorites() {
           <button type="button" class="notification-toggle ${item.notify_price ? "active" : ""}" data-favorite-notify="price" data-id="${item.id}" aria-pressed="${item.notify_price ? "true" : "false"}">Цена ${item.notify_price ? "включена" : "выключена"}</button>
           <button type="button" class="notification-toggle ${item.notify_stock ? "active" : ""}" data-favorite-notify="stock" data-id="${item.id}" aria-pressed="${item.notify_stock ? "true" : "false"}">Наличие ${item.notify_stock ? "включено" : "выключено"}</button>
         </div>`).join("")}</div>`
-      : `<div class="empty-state">Сохранённых товаров пока нет.<br>Нажмите ♡ в карточке товара.</div>`;
+      : `<div class="empty-state">Сохранённых товаров пока нет.<br>Нажмите звёздочку в карточке товара.</div>`;
     $("favorites-status").hidden = visible.length > 0;
     $("favorites-status").textContent = visible.length ? "" : "Нет подходящих товаров";
   } catch (error) { $("favorites-status").hidden = false; $("favorites-status").innerHTML = `${escapeHtml(error.message)} <button class="text-button inline-retry" type="button" data-retry="favorites">Повторить</button>`; }
@@ -1413,7 +1417,8 @@ async function toggleFavorite(catId, button) {
     const item = categories.find((entry) => entry.id === catId);
     if (item) item.favorite = !isFavorite;
     button.classList.toggle("is-favorite", !isFavorite);
-    button.textContent = isFavorite ? "♡" : "♥";
+    button.innerHTML = favoriteIcon(!isFavorite);
+    button.setAttribute("aria-pressed", String(!isFavorite));
     button.setAttribute("aria-label", isFavorite ? "Добавить в избранное" : "Удалить из избранного");
     showToast(isFavorite ? "Удалено из избранного" : "Добавлено в избранное");
     if (document.querySelector("#favorites-view.active-view")) loadFavorites();

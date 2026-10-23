@@ -180,7 +180,8 @@ select {
 .card.cart-added { animation: card-added .55s ease-out; }
 @keyframes card-added { 50% { transform: scale(1.015); box-shadow: 0 0 0 3px rgba(245,245,247,.12); } }
 .pill { padding: 4px 8px; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; font-size: 10px; }
-.favorite-button { margin-left: auto; padding: 0 4px; border: 0; background: none; color: var(--muted); font-size: 22px; line-height: 1; }
+.favorite-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; margin-left: auto; padding: 0; border: 0; background: none; color: var(--muted); line-height: 0; }
+.favorite-button svg { display: block; width: 20px; height: 20px; flex: 0 0 20px; }
 .favorite-button.is-favorite { color: #ff91a4; }
 .favorite-notifications { display: flex; flex-wrap: wrap; gap: 6px; margin: -5px 0 10px; }
 .notification-toggle { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--soft); color: var(--muted); font-size: 11px; }
