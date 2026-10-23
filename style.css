@@ -62,7 +62,8 @@ button { cursor: pointer; position: relative; overflow: hidden; }
 .filters-toggle[aria-expanded="true"] .filters-chevron { margin-top: 6px; transform: rotate(225deg); }
 .topbar, .section-heading, .meta, .card-top, .cart-line, .profile-main, .stats { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .section-heading > div { display: flex; align-items: center; gap: 9px; }
-.settings-button { width: 38px; height: 38px; flex: 0 0 38px; padding: 0; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); color: var(--muted); font-size: 21px; line-height: 1; transition: color .2s, border-color .2s, background-color .2s; }
+.settings-button { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; padding: 0; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); color: var(--muted); transition: color .2s, border-color .2s, background-color .2s; }
+.settings-button svg { width: 19px; height: 19px; color: var(--accent); }
 .settings-button:hover { color: var(--text); border-color: var(--text); }
 .profile-heading h2 { margin: 0; }
 .topbar { align-items: center; margin-bottom: 24px; }
@@ -443,6 +444,11 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
   .card { transform: none; }
 }
 @media (max-width: 520px) {
+  .stats { margin-top: 18px; gap: 6px; }
+  .stats div { gap: 3px; padding: 7px 6px; border-radius: 10px; }
+  .stats strong { font-size: clamp(11px, 3.7vw, 16px); }
+  .stats span { font-size: 9px; }
+  .stats-icon { width: 18px; height: 18px; }
   .tutorial-dialog { padding: 17px; }
   .tutorial-description { min-height: 88px; font-size: 14px; }
   #cart-view .section-heading { align-items: center; margin: 4px 0 14px; }
