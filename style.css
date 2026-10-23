@@ -242,9 +242,10 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .profile-main span, .promo-box span { color: var(--muted); font-size: 12px; }
 .profile-username .admin-badge { display: inline-flex; align-items: center; width: fit-content; padding: 4px 7px; border: 1px solid #a4873f; border-radius: 6px; background: #30291c; color: #f4d37c !important; font-size: 10px; font-weight: 700; line-height: 1; }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; margin-top: 22px; gap: 8px; }
-.stats div { display: grid; align-content: center; gap: 5px; min-width: 0; padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
+.stats div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: center; align-items: center; gap: 5px 4px; min-width: 0; padding: 10px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--soft); }
 .stats strong { min-width: 0; font-size: clamp(12px, 4vw, 19px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.stats span { color: var(--muted); font-size: 10px; line-height: 1.25; }
+.stats span { grid-column: 1; color: var(--muted); font-size: 10px; line-height: 1.25; }
+.stats-icon { grid-column: 2; grid-row: 1 / span 2; width: 21px; height: 21px; color: var(--accent); }
 .profile-card-heading { display: grid; gap: 3px; margin-bottom: 12px; }
 .profile-card-heading span { color: var(--muted); font-size: 12px; }
 .referral-link { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #4b5357; background: var(--panel); border-radius: 10px; }
