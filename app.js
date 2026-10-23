@@ -1163,11 +1163,18 @@ function showPaymentWaiting(result) {
     provider: result.provider,
     qrShown: false,
   };
-  $("external-payment-provider").textContent = providerName.toUpperCase();
+  setExternalPaymentProvider(result.provider);
   $("xrocket-choice-description").textContent = `Счёт создан на нужную сумму. Перейдите в ${providerName} или оплатите по QR-коду.`;
   $("xrocket-open-choice").textContent = `Перейти в ${providerName}`;
   $("xrocket-choice-modal").hidden = false;
   $("xrocket-open-choice").focus();
+}
+
+function setExternalPaymentProvider(provider) {
+  const isCryptoBot = provider === "cryptobot";
+  const name = isCryptoBot ? "CRYPTOBOT" : "XROCKET";
+  const image = isCryptoBot ? "./assets/cryptobot-icon.png" : "./assets/xrocket-icon.png";
+  $("external-payment-provider").innerHTML = `<img class="payment-provider-icon" src="${image}" alt=""> <span>${name}</span>`;
 }
 
 function showSuccessScreen(orderNumber, itemText) {
@@ -1626,7 +1633,7 @@ async function startDeposit() {
       };
       $("xrocket-choice-qr-panel").hidden = true;
       $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
-      $("external-payment-provider").textContent = providerName.toUpperCase();
+      setExternalPaymentProvider(result.provider);
       $("xrocket-choice-description").textContent = `Счёт создан на ${amount.toFixed(2)} USDT. Перейдите в ${providerName} или оплатите по QR-коду.`;
       $("xrocket-open-choice").textContent = `Перейти в ${providerName}`;
       $("xrocket-choice-modal").hidden = false;
