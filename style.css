@@ -257,7 +257,8 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .deposit-amounts, .deposit-providers { display: flex; gap: 7px; margin-bottom: 10px; }
 .deposit-providers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .amount-option, .provider-option { flex: 1; border: 1px solid var(--line); border-radius: 9px; padding: 9px 6px; background: var(--soft); color: var(--muted); }
-.provider-option { width: 100%; min-height: 42px; padding: 10px 12px; text-align: center; }
+.provider-option { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 42px; padding: 10px 12px; text-align: center; }
+.provider-icon { display: block; width: 20px; height: 20px; flex: 0 0 20px; border-radius: 5px; object-fit: cover; }
 .provider-option:last-child { grid-column: 1 / -1; }
 .amount-option.active, .provider-option.active { border-color: var(--text); color: var(--text); background: #26262b; }
 .deposit-custom { display: grid; gap: 6px; margin-bottom: 11px; color: var(--muted); font-size: 12px; }

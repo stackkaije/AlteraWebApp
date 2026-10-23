@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=134">
+  <link rel="stylesheet" href="./style.css?v=137">
 </head>
 <body>
   <main class="app">
@@ -235,9 +235,18 @@
         </div>
         <label class="deposit-custom"><span>Своя сумма, USDT</span><input id="deposit-amount" type="number" min="1" max="10000" step="0.01" value="100"></label>
         <div class="deposit-providers" role="group" aria-label="Способ пополнения">
-          <button type="button" class="provider-option active" data-provider="xrocket">xRocket</button>
-          <button type="button" class="provider-option" data-provider="cryptobot">CryptoBot</button>
-          <button type="button" class="provider-option" data-provider="stars">Telegram Stars</button>
+          <button type="button" class="provider-option active" data-provider="xrocket">
+            <img class="provider-icon" src="./assets/xrocket-icon.png" alt="">
+            <span>xRocket</span>
+          </button>
+          <button type="button" class="provider-option" data-provider="cryptobot">
+            <img class="provider-icon" src="./assets/cryptobot-icon.png" alt="">
+            <span>CryptoBot</span>
+          </button>
+          <button type="button" class="provider-option" data-provider="stars">
+            <img class="provider-icon" src="./assets/telegram-stars-icon.png" alt="">
+            <span>Telegram Stars</span>
+          </button>
         </div>
         <button id="deposit-submit" class="primary-button" type="button">Пополнить через xRocket</button>
         <p id="deposit-status" class="form-status"></p>
