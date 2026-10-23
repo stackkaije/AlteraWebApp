@@ -182,7 +182,7 @@ select {
 .pill { padding: 4px 8px; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; font-size: 10px; }
 .favorite-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; margin-left: auto; padding: 0; border: 0; background: none; color: var(--muted); line-height: 0; }
 .favorite-button svg { display: block; width: 20px; height: 20px; flex: 0 0 20px; }
-.favorite-button.is-favorite { color: #ff91a4; }
+.favorite-button.is-favorite { color: #ffd54f; }
 .favorite-notifications { display: flex; flex-wrap: wrap; gap: 6px; margin: -5px 0 10px; }
 .notification-toggle { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--soft); color: var(--muted); font-size: 11px; }
 .notification-toggle.active { border-color: #6f9f83; color: #9be0b5; }
@@ -1291,7 +1291,7 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
   border-color: #382b2b;
   background: #191313;
 }
-:root[data-design="night"] .favorite-button.is-favorite { color: #ff6870; }
+:root[data-design="night"] .favorite-button.is-favorite { color: #ffd54f; }
 :root[data-design="night"] .badge {
   background: rgba(240, 68, 76, .12);
   color: #ff858a;
