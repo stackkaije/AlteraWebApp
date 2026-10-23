@@ -413,9 +413,6 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .confetti-layer { position: fixed; z-index: 40; inset: 0; overflow: hidden; pointer-events: none; }
 .confetti-piece { position: absolute; top: 42%; width: 9px; height: 14px; border-radius: 2px; opacity: 0; animation: confetti-fall 1.7s cubic-bezier(.15,.7,.35,1) forwards; }
 @keyframes confetti-fall { 0% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate3d(var(--x), 72vh, 0) rotate(var(--r)); } }
-.settings-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
-.settings-toggle-row > div { display: grid; gap: 3px; }
-.settings-toggle-row small { color: var(--muted); font-size: 11px; }
 .account-gate { position: fixed; z-index: 100; inset: 0; display: grid; align-items: center; justify-items: center; overflow: auto; padding: 18px; background: rgba(0,0,0,.82); backdrop-filter: blur(12px); }
 .account-gate-card { width: min(100%, 440px); max-height: 100%; overflow: auto; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); box-shadow: 0 20px 70px #000b; }
 .account-gate-card > * + * { margin-top: 16px; }
@@ -440,10 +437,6 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 .login-recovery-word input { width: 100%; min-width: 0; padding: 7px 0; border: 0; outline: none; background: transparent; color: var(--text); font: inherit; font-size: 13px; }
 .login-recovery-word:focus-within { border-color: var(--accent); }
 .settings-security-status { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.5; }
-.switch { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; min-width: 78px; padding: 5px 8px 5px 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--muted); font-size: 11px; font-weight: 750; transition: border-color .2s, background .2s, color .2s; }
-.switch span { width: 24px; height: 24px; border-radius: 50%; background: var(--muted); transition: transform .2s, background .2s; }
-.switch.is-on { border-color: rgba(124,231,211,.5); background: rgba(124,231,211,.1); color: var(--accent); }
-.switch.is-on span { background: var(--accent); transform: translateX(0); box-shadow: 0 0 10px rgba(124,231,211,.45); }
 @media (prefers-reduced-motion: reduce) {
   body::before, body::after { animation: none; transition: none; }
   .card { transform: none; }

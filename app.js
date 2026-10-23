@@ -23,7 +23,6 @@ let purchasePollTimer = null;
 let purchaseExpiryTimer = null;
 let currentBalance = null;
 let checkoutRequestKey = null;
-let audioContext = null;
 let xrocketChoice = null;
 let toastTimeout = null;
 let toastRemovalTimeout = null;
@@ -408,20 +407,6 @@ document.body.addEventListener("submit", async (event) => {
     button.disabled = false;
   }
 });
-function applySoundPreference(enabled) {
-  const toggle = $("sound-toggle");
-  if (!toggle) return;
-  toggle.setAttribute("aria-checked", String(enabled));
-  toggle.classList.toggle("is-on", enabled);
-  toggle.querySelector("b").textContent = enabled ? "Вкл." : "Выкл.";
-}
-$("sound-toggle").addEventListener("click", () => {
-  const enabled = $("sound-toggle").getAttribute("aria-checked") !== "true";
-  localStorage.setItem("altera-sounds", String(enabled));
-  applySoundPreference(enabled);
-  if (enabled) playInterfaceSound("bonus");
-});
-applySoundPreference(localStorage.getItem("altera-sounds") !== "false");
 document.addEventListener("pointermove", (event) => {
   if (event.pointerType === "touch") return;
   const x = (event.clientX / window.innerWidth - .5) * 16;
@@ -1185,7 +1170,6 @@ function showSuccessScreen(orderNumber, itemText) {
   $("purchase-success").classList.remove("success-visible");
   requestAnimationFrame(() => $("purchase-success").classList.add("success-visible"));
   launchConfetti();
-  playInterfaceSound("payment");
   $("success-close").focus();
 }
 
@@ -1291,7 +1275,6 @@ function addToCart(id, count = 1) {
   card?.classList.remove("cart-added");
   requestAnimationFrame(() => card?.classList.add("cart-added"));
   showToast(`${item.name} добавлен в корзину`, "success");
-  playInterfaceSound("cart");
   haptic("light");
 }
 
@@ -1527,35 +1510,6 @@ function formatDate(value) {
 
 function setStatus(message) { statusNode.textContent = message; }
 function haptic(style = "light") { try { tg?.HapticFeedback?.impactOccurred(style); } catch {} }
-function playInterfaceSound(kind) {
-  if (localStorage.getItem("altera-sounds") === "false") return;
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
-  try {
-    audioContext ||= new AudioContextClass();
-    if (audioContext.state === "suspended") audioContext.resume();
-    const notes = {
-      cart: [[520, 0], [700, .07]],
-      payment: [[440, 0], [660, .1], [880, .2]],
-      bonus: [[660, 0], [880, .1]]
-    }[kind] || [[520, 0]];
-    const now = audioContext.currentTime;
-    notes.forEach(([frequency, offset]) => {
-      const oscillator = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(.0001, now + offset);
-      gain.gain.exponentialRampToValueAtTime(.045, now + offset + .015);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + offset + .13);
-      oscillator.connect(gain).connect(audioContext.destination);
-      oscillator.start(now + offset);
-      oscillator.stop(now + offset + .14);
-    });
-  } catch (error) {
-    console.warn("Не удалось воспроизвести звук интерфейса", error);
-  }
-}
 function showToast(message, type = "default") {
   const container = $("toast-container");
   if (!container) return;
@@ -1614,7 +1568,6 @@ async function startDeposit() {
       tg.openInvoice(result.invoice_link, (invoiceStatus) => {
         if (invoiceStatus === "paid") {
           showToast(`Баланс пополнен на ${amount.toFixed(2)} USDT`);
-          playInterfaceSound("bonus");
           status.textContent = "Оплата подтверждена.";
           loadProfile();
         } else if (invoiceStatus === "cancelled" || invoiceStatus === "failed") {
@@ -1660,7 +1613,6 @@ function pollDeposit(invoiceId, amount) {
         clearInterval(depositPollTimer);
         $("deposit-status").textContent = "Оплата подтверждена.";
         showToast(`Баланс пополнен на ${amount.toFixed(2)} USDT`);
-        playInterfaceSound("bonus");
         loadProfile();
       } else if (result.status === "expired") {
         clearInterval(depositPollTimer);
@@ -1682,7 +1634,6 @@ async function checkDepositPayment(manual = false) {
       clearInterval(depositPollTimer);
       status.textContent = "Платеж поступил. Баланс пополнен.";
       showToast(`Баланс пополнен на ${Number(xrocketChoice.amount || 0).toFixed(2)} USDT`);
-      playInterfaceSound("bonus");
       loadProfile();
       xrocketChoice = null;
       return true;
