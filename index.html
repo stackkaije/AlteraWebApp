@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=159">
+  <link rel="stylesheet" href="./style.css?v=161">
 </head>
 <body>
   <main class="app">
@@ -310,9 +310,9 @@
       <p id="checkout-total" class="total"></p>
       <div id="payment-options" class="payment-options">
         <button id="pay-balance" class="pay-button">Оплатить с баланса</button>
-        <button id="pay-xrocket" class="pay-button secondary">Оплатить через xRocket</button>
-        <button id="pay-cryptobot" class="pay-button secondary">Оплатить через CryptoBot</button>
-        <button id="pay-stars" class="pay-button secondary">Оплатить через Telegram Stars</button>
+        <button id="pay-xrocket" class="pay-button secondary" aria-label="Оплатить через xRocket"><img class="provider-icon" src="./assets/xrocket-icon.png" alt=""><span>xRocket</span></button>
+        <button id="pay-cryptobot" class="pay-button secondary" aria-label="Оплатить через CryptoBot"><img class="provider-icon" src="./assets/cryptobot-icon.png" alt=""><span>CryptoBot</span></button>
+        <button id="pay-stars" class="pay-button secondary" aria-label="Оплатить через Telegram Stars"><img class="provider-icon" src="./assets/telegram-stars-icon.png" alt=""><span>Telegram Stars</span></button>
       </div>
       <section id="payment-waiting" class="payment-waiting" hidden aria-live="polite">
         <div class="waiting-heading"><span class="waiting-icon" aria-hidden="true">◷</span><div><strong>Ожидаем оплату</strong><span id="waiting-order">Счёт создан</span></div></div>
