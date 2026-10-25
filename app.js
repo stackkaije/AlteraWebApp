@@ -637,7 +637,7 @@ async function openProductPage(item) {
         </div>
       </div>
       <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-expanded"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div></section>
-      <section class="product-section"><h2>Отзывы</h2>${reviews.length ? reviews.slice(0, 3).map((review) => `<p class="review-line">★ ${Number(review.rating)} ${escapeHtml(review.text || "")}</p>`).join("") : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
+      <section class="product-section"><h2>Отзывы</h2>${reviews.length ? `<div class="product-review-list">${reviews.slice(0, 3).map((review) => `<article class="review-line"><strong>★ ${Number(review.rating)}</strong><p>${escapeHtml(review.text || "")}</p></article>`).join("")}</div>` : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
       <section class="product-section"><h2>Похожие товары</h2><div class="similar-products">${categories.filter((entry) => entry.id !== product.id && entry.group === product.group).slice(0, 3).map(cardTemplate).join("") || `<p class="muted">Похожих товаров пока нет.</p>`}</div></section>`;
     $("product-buy").addEventListener("click", () => openCheckout(product));
     $("product-cart").addEventListener("click", () => { addToCart(product.id); showToast("Товар добавлен в корзину"); });
@@ -646,8 +646,9 @@ async function openProductPage(item) {
       button.disabled = true;
       try {
         const result = await api("/api/reviews", { method: "POST", body: JSON.stringify({ cat_id: product.id, rating: Number($("review-rating").value), text: $("review-text").value }) });
-        $("review-status").textContent = result.message;
-        loadReviews(product.id);
+            await openProductPage(product);
+            const status = $("review-status");
+            if (status) status.textContent = result.message;
       } catch (error) { $("review-status").textContent = error.message; }
       finally { button.disabled = false; }
     });
@@ -838,7 +839,6 @@ function openCheckout(item) {
   $("payment-waiting").hidden = true;
   $("payment-options").hidden = false;
   pendingPayment = null;
-  loadReviews(item.id);
   checkoutNode.hidden = false;
   document.body.classList.add("checkout-open");
   updateCheckout();
@@ -890,20 +890,6 @@ function closeCheckout() {
   checkoutReturnFocus = null;
 }
 
-async function loadReviews(catId) {
-  const node = $("checkout-reviews");
-  node.innerHTML = "<span class=\"muted\">Загрузка отзывов...</span>";
-  try {
-    const data = await api(`/api/reviews?cat_id=${encodeURIComponent(catId)}`);
-    const rating = data.count ? `★ ${Number(data.rating).toFixed(1)} · ${data.count} отзывов` : "Отзывов пока нет";
-    node.innerHTML = `<strong>${rating}</strong>` + (data.reviews?.length
-      ? data.reviews.slice(0, 3).map((review) => `<p>★ ${Number(review.rating)} ${escapeHtml(review.text)}</p>`).join("")
-      : "");
-  } catch {
-    node.textContent = "Отзывы временно недоступны.";
-  }
-}
-
 function changeQuantity(delta) {
   if (!selected) return;
   quantity = Math.max(1, Math.min(Number(selected.stock), quantity + delta));
@@ -927,7 +913,11 @@ function baseCheckoutTotal() {
 }
 
 function updateCheckout() {
-  if (checkoutMode === "single") quantityNode.textContent = quantity;
+  if (checkoutMode === "single") {
+    quantityNode.textContent = quantity;
+    $("quantity-minus").disabled = quantity <= 1;
+    $("quantity-plus").disabled = quantity >= Number(selected.stock);
+  }
   const base = baseCheckoutTotal();
   const discount = activePromo?.promo_type === "percent" ? Number(activePromo.amount) : 0;
   const total = base * (1 - discount / 100);

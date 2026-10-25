@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=161">
+  <link rel="stylesheet" href="./style.css?v=164">
 </head>
 <body>
   <main class="app">
@@ -289,12 +289,11 @@
       </div>
       <p id="checkout-price" class="status"></p>
       <p id="checkout-description" class="checkout-description"></p>
-      <section id="checkout-reviews" class="checkout-reviews"></section>
-      <div id="quantity-controls">
-        <label class="quantity-label" for="quantity">Количество</label>
-        <div class="quantity">
+      <div id="quantity-controls" class="quantity-controls">
+        <span class="quantity-label">Количество</span>
+        <div class="quantity" role="group" aria-label="Количество товара">
           <button id="quantity-minus" class="quantity-button" type="button" aria-label="Уменьшить количество">−</button>
-          <strong id="quantity">1</strong>
+          <strong id="quantity" aria-live="polite">1</strong>
           <button id="quantity-plus" class="quantity-button" type="button" aria-label="Увеличить количество">+</button>
         </div>
       </div>
@@ -375,6 +374,6 @@
       </article>
     </div>
   </section>
-  <script src="./app.js?v=134"></script>
+  <script src="./app.js?v=137"></script>
 </body>
 </html>
