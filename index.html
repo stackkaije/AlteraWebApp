@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=182">
+  <link rel="stylesheet" href="./style.css?v=184">
 </head>
 <body>
   <main class="app">
@@ -211,20 +211,20 @@
         </div>
         <label class="deposit-custom"><span>Введите свою сумму</span><input id="deposit-amount" type="number" min="1" max="10000" step="0.01" value="100"></label>
         <div class="deposit-providers" role="group" aria-label="Способ пополнения">
-          <button type="button" class="provider-option active" data-provider="xrocket">
+          <button type="button" class="provider-option active" data-provider="cryptobot">
+            <img class="provider-icon" src="./assets/cryptobot-icon.png" alt="">
+            <span>Crypto Pay</span>
+          </button>
+          <button type="button" class="provider-option" data-provider="xrocket">
             <img class="provider-icon" src="./assets/xrocket-icon.png" alt="">
             <span>xRocket</span>
-          </button>
-          <button type="button" class="provider-option" data-provider="cryptobot">
-            <img class="provider-icon" src="./assets/cryptobot-icon.png" alt="">
-            <span>CryptoBot</span>
           </button>
           <button type="button" class="provider-option" data-provider="stars">
             <img class="provider-icon" src="./assets/telegram-stars-icon.png" alt="">
             <span>Telegram Stars</span>
           </button>
         </div>
-        <button id="deposit-submit" class="primary-button" type="button">Пополнить через xRocket</button>
+        <button id="deposit-submit" class="primary-button" type="button">Пополнить через Crypto Pay</button>
         <p id="deposit-status" class="form-status"></p>
       </section>
       <button class="profile-purchases-card" type="button" data-view="history-view"><span class="profile-purchases-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 8.5h14l-1 12H6l-1-12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 9V6.5a3 3 0 0 1 6 0V9M9 13.5l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Мои покупки</strong><small>История заказов и выданных товаров</small></span><span class="profile-purchases-arrow" aria-hidden="true">›</span></button>
@@ -310,8 +310,8 @@
         <p id="checkout-total" class="total"></p>
         <div id="payment-options" class="payment-options">
           <button id="pay-balance" class="pay-button">Оплатить с баланса</button>
+          <button id="pay-cryptobot" class="pay-button secondary" aria-label="Оплатить через Crypto Pay"><img class="provider-icon" src="./assets/cryptobot-icon.png" alt=""><span>Crypto Pay</span></button>
           <button id="pay-xrocket" class="pay-button secondary" aria-label="Оплатить через xRocket"><img class="provider-icon" src="./assets/xrocket-icon.png" alt=""><span>xRocket</span></button>
-          <button id="pay-cryptobot" class="pay-button secondary" aria-label="Оплатить через CryptoBot"><img class="provider-icon" src="./assets/cryptobot-icon.png" alt=""><span>CryptoBot</span></button>
           <button id="pay-stars" class="pay-button secondary" aria-label="Оплатить через Telegram Stars"><img class="provider-icon" src="./assets/telegram-stars-icon.png" alt=""><span>Telegram Stars</span></button>
         </div>
       </div>
@@ -341,13 +341,13 @@
       <div id="balance-sheet-presets" class="balance-sheet-presets" aria-label="Быстрый выбор суммы"></div>
       <strong class="balance-sheet-label">Способ пополнения</strong>
       <div class="balance-sheet-providers">
-        <button type="button" class="balance-provider-option" data-balance-provider="xrocket">
-          <img class="provider-icon" src="./assets/xrocket-icon.png" alt="">
-          <span><strong>xRocket</strong><small>Пополнение через Telegram</small></span><b aria-hidden="true">›</b>
-        </button>
         <button type="button" class="balance-provider-option" data-balance-provider="cryptobot">
           <img class="provider-icon" src="./assets/cryptobot-icon.png" alt="">
-          <span><strong>CryptoBot</strong><small>Пополнение криптовалютой</small></span><b aria-hidden="true">›</b>
+          <span><strong>Crypto Pay</strong><small>Пополнение криптовалютой</small></span><b aria-hidden="true">›</b>
+        </button>
+        <button type="button" class="balance-provider-option" data-balance-provider="xrocket">
+          <img class="provider-icon" src="./assets/xrocket-icon.png" alt="">
+          <span><strong>xRocket</strong><small>Пополнение криптовалютой</small></span><b aria-hidden="true">›</b>
         </button>
         <button type="button" class="balance-provider-option" data-balance-provider="stars">
           <img class="provider-icon" src="./assets/telegram-stars-icon.png" alt="">
@@ -409,6 +409,6 @@
       </article>
     </div>
   </section>
-  <script src="./app.js?v=182"></script>
+  <script src="./app.js?v=184"></script>
 </body>
 </html>

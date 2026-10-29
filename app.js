@@ -13,7 +13,7 @@ let quantity = 1;
 let currentProductId = null;
 let checkoutMode = "single";
 let activePromo = null;
-let depositProvider = "xrocket";
+let depositProvider = "cryptobot";
 let depositPollTimer = null;
 let previousCartCount = 0;
 let pendingPayment = null;
@@ -253,7 +253,7 @@ $("deposit-amount").addEventListener("input", () => {
 document.querySelectorAll(".provider-option").forEach((button) => button.addEventListener("click", () => {
   depositProvider = button.dataset.provider;
   document.querySelectorAll(".provider-option").forEach((option) => option.classList.toggle("active", option === button));
-  const providerName = { xrocket: "xRocket", cryptobot: "CryptoBot", stars: "Telegram Stars" }[depositProvider] || "xRocket";
+  const providerName = { xrocket: "xRocket", cryptobot: "Crypto Pay", stars: "Telegram Stars" }[depositProvider] || "xRocket";
   $("deposit-submit").textContent = `Пополнить через ${providerName}`;
 }));
 $("deposit-submit").addEventListener("click", startDeposit);
@@ -1087,8 +1087,8 @@ async function startBalanceSheetDeposit(provider) {
     }
     if ((result.provider || provider) === "cryptobot") {
       const cryptobotUrl = result.mini_app_url || result.pay_url;
-      if (!cryptobotUrl) throw new Error("Ссылка CryptoBot недоступна.");
-      $("balance-sheet-status").textContent = "Ожидаем оплату CryptoBot...";
+      if (!cryptobotUrl) throw new Error("Ссылка Crypto Pay недоступна.");
+      $("balance-sheet-status").textContent = "Ожидаем оплату Crypto Pay...";
       pollBalanceSheetDeposit(result.invoice_id, balanceSheetAmount);
       if (tg?.openTelegramLink && /^https:\/\/t\.me\//i.test(cryptobotUrl)) {
         tg.openTelegramLink(cryptobotUrl);
@@ -1126,7 +1126,7 @@ async function startBalanceSheetDeposit(provider) {
       $("xrocket-choice-modal").hidden = false;
       return;
     }
-    const providerName = provider === "cryptobot" ? "CryptoBot" : "xRocket";
+    const providerName = provider === "cryptobot" ? "Crypto Pay" : "xRocket";
     xrocketChoice = {
       payUrl: result.pay_url,
       amount: balanceSheetAmount,
@@ -1245,7 +1245,7 @@ function submitPurchase(payment) {
           : result.pay_url;
         pendingPayment = { ...result, pay_url: paymentUrl, purchaseLines };
         showPaymentWaiting(pendingPayment);
-        showToast(`Счёт ${result.provider === "cryptobot" ? "CryptoBot" : "xRocket"} создан`);
+        showToast(`Счёт ${result.provider === "cryptobot" ? "Crypto Pay" : "xRocket"} создан`);
         pollPurchasePayment();
         if (result.provider === "xrocket") {
           $("xrocket-choice-modal").hidden = true;
@@ -1285,7 +1285,7 @@ function submitPurchase(payment) {
 }
 
 function showPaymentWaiting(result) {
-  const providerName = result.provider === "cryptobot" ? "CryptoBot" : "xRocket";
+  const providerName = result.provider === "cryptobot" ? "Crypto Pay" : "xRocket";
   $("xrocket-choice-qr-panel").hidden = true;
   $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
   $("payment-waiting").hidden = false;
@@ -1334,7 +1334,7 @@ function showPaymentWaiting(result) {
 
 function setExternalPaymentProvider(provider) {
   const isCryptoBot = provider === "cryptobot";
-  const name = isCryptoBot ? "CRYPTOBOT" : "XROCKET";
+  const name = isCryptoBot ? "CRYPTO PAY" : "XROCKET";
   const image = isCryptoBot ? "./assets/cryptobot-icon.png" : "./assets/xrocket-icon.png";
   $("external-payment-provider").innerHTML = `<img class="payment-provider-icon" src="${image}" alt=""> <span>${name}</span>`;
 }
@@ -1578,7 +1578,7 @@ async function loadHistory() {
     const data = await api(`/api/history?limit=100&sort=newest&status=all&days=${encodeURIComponent(days)}`);
     $("history-list").innerHTML = data.history?.length ? data.history.map((entry) => {
       const status = entry.status || "delivered";
-      const method = entry.payment_method === "xrocket" ? "xRocket" : entry.payment_method === "cryptobot" ? "CryptoBot" : entry.payment_method === "stars" ? "Telegram Stars" : "Баланс";
+      const method = entry.payment_method === "xrocket" ? "xRocket" : entry.payment_method === "cryptobot" ? "Crypto Pay" : entry.payment_method === "stars" ? "Telegram Stars" : "Баланс";
       return `<article class="history-item"><div><strong>${escapeHtml(entry.product)}</strong><span>${escapeHtml(entry.item_preview || "Товар выдан")}</span><span class="history-meta"><b>${escapeHtml(entry.order_number || "Заказ")}</b> · ${method} · ${Number(entry.amount || 0).toFixed(2)} USDT</span></div><div class="history-actions"><time>${formatDate(entry.date)}</time><span class="order-status status-${escapeHtml(status)}">${statusLabel(status)}</span><div class="history-buttons"><button class="text-button" data-order-action="receive" data-history-id="${entry.id}" data-order-number="${escapeHtml(entry.order_number || "")}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Получить товар</button><button class="text-button" data-order-action="copy" data-history-id="${entry.id}" ${status === "fulfilled" || status === "delivered" ? "" : "disabled"}>Скопировать товар</button><button class="text-button" data-repeat-cat="${entry.cat_id || ""}" ${entry.cat_id ? "" : "disabled"}>Повторить покупку</button><button class="text-button support-button" data-order-action="support" data-order-number="${escapeHtml(entry.order_number || "")}">Проблема с заказом</button></div></div></article>`;
     }).join("") : `<div class="empty-state"><span class="empty-illustration" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 8.5h14l-1 12H6l-1-12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 9V6.5a3 3 0 0 1 6 0V9M9 13.5l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><strong>Покупок пока нет</strong><span>Ваши выданные товары появятся здесь.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>`;
     $("history-status").textContent = data.history?.length ? `${data.history.length} записей` : "";
@@ -1757,7 +1757,7 @@ async function startDeposit() {
         }
       });
     } else {
-      const providerName = result.provider === "cryptobot" ? "CryptoBot" : "xRocket";
+      const providerName = result.provider === "cryptobot" ? "Crypto Pay" : "xRocket";
       xrocketChoice = {
         payUrl: result.pay_url,
         amount,
