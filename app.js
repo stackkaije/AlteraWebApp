@@ -1094,6 +1094,14 @@ async function startBalanceSheetDeposit(provider) {
       }
       return;
     }
+    if ((result.provider || provider) === "xrocket") {
+      if (!result.pay_url) throw new Error("Ссылка xRocket недоступна.");
+      $("balance-sheet-status").textContent = "Ожидаем оплату xRocket...";
+      pollBalanceSheetDeposit(result.invoice_id, balanceSheetAmount);
+      closeBalanceSheet();
+      openPaymentLink(result.pay_url);
+      return;
+    }
     const providerName = provider === "cryptobot" ? "CryptoBot" : "xRocket";
     xrocketChoice = {
       payUrl: result.pay_url,
