@@ -28,6 +28,7 @@ let toastTimeout = null;
 let toastRemovalTimeout = null;
 let balanceSheetAmount = 0;
 let balanceSheetPollTimer = null;
+let balanceSheetContext = "profile";
 
 tg?.ready();
 tg?.expand();
@@ -855,7 +856,6 @@ async function startPurchase(item) {
   if (!item || Number(item.stock) < 1) return;
   haptic("light");
   const total = lineTotal(item, 1);
-  openBalanceSheet(total, true);
   try {
     await loadProfile();
   } catch (error) {
@@ -868,8 +868,11 @@ async function startPurchase(item) {
     return;
   }
   if (balance < total) {
-    openBalanceSheet(total - balance);
+    openBalanceSheet(total - balance, true);
+    return;
   }
+  closeBalanceSheet();
+  openCheckout(item);
 }
 
 function openCheckout(item) {
@@ -987,6 +990,7 @@ function updateCheckout() {
 }
 
 function openBalanceSheet(shortage, purchaseMode = false) {
+  balanceSheetContext = purchaseMode ? "purchase" : "profile";
   balanceSheetAmount = Math.max(1, Math.ceil((Number(shortage) || 1) * 100) / 100);
   $("balance-sheet-message").textContent = purchaseMode
     ? `Пополните баланс для покупки на ${balanceSheetAmount.toFixed(2)} USDT`
@@ -1008,6 +1012,7 @@ function openBalanceSheet(shortage, purchaseMode = false) {
 function closeBalanceSheet() {
   $("balance-sheet-modal").hidden = true;
   document.body.classList.remove("balance-sheet-open");
+  balanceSheetContext = "profile";
 }
 
 function pollBalanceSheetDeposit(invoiceId, amount) {
@@ -1098,8 +1103,26 @@ async function startBalanceSheetDeposit(provider) {
       if (!result.pay_url) throw new Error("Ссылка xRocket недоступна.");
       $("balance-sheet-status").textContent = "Ожидаем оплату xRocket...";
       pollBalanceSheetDeposit(result.invoice_id, balanceSheetAmount);
-      closeBalanceSheet();
-      openPaymentLink(result.pay_url);
+      if (balanceSheetContext === "purchase") {
+        $("xrocket-choice-modal").hidden = true;
+        closeBalanceSheet();
+        openPaymentLink(result.pay_url);
+        return;
+      }
+      xrocketChoice = {
+        payUrl: result.pay_url,
+        amount: balanceSheetAmount,
+        invoiceId: result.invoice_id,
+        mode: "deposit",
+        provider: "xrocket",
+        qrShown: false,
+      };
+      $("xrocket-choice-qr-panel").hidden = true;
+      $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
+      setExternalPaymentProvider("xrocket");
+      $("xrocket-choice-description").textContent = `Счёт создан на ${balanceSheetAmount.toFixed(2)} USDT. Перейдите в xRocket или оплатите по QR-коду.`;
+      $("xrocket-open-choice").textContent = "Перейти в xRocket";
+      $("xrocket-choice-modal").hidden = false;
       return;
     }
     const providerName = provider === "cryptobot" ? "CryptoBot" : "xRocket";
@@ -1220,6 +1243,10 @@ function submitPurchase(payment) {
         showPaymentWaiting(pendingPayment);
         showToast(`Счёт ${result.provider === "cryptobot" ? "CryptoBot" : "xRocket"} создан`);
         pollPurchasePayment();
+        if (result.provider === "xrocket") {
+          $("xrocket-choice-modal").hidden = true;
+          openPaymentLink(result.pay_url);
+        }
         return;
       }
 
