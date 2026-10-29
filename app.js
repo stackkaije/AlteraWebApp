@@ -26,6 +26,8 @@ let checkoutRequestKey = null;
 let xrocketChoice = null;
 let toastTimeout = null;
 let toastRemovalTimeout = null;
+let balanceSheetAmount = 0;
+let balanceSheetPollTimer = null;
 
 tg?.ready();
 tg?.expand();
@@ -51,6 +53,23 @@ document.addEventListener("focusin", syncFixedPanelsWithKeyboard);
 document.addEventListener("focusout", () => requestAnimationFrame(syncFixedPanelsWithKeyboard));
 syncFixedPanelsWithKeyboard();
 $("checkout-close").addEventListener("click", closeCheckout);
+$("balance-sheet-close").addEventListener("click", closeBalanceSheet);
+$("balance-sheet-modal").querySelector(".balance-sheet-backdrop").addEventListener("click", closeBalanceSheet);
+$("balance-sheet-minus").addEventListener("click", () => setBalanceSheetAmount(balanceSheetAmount - 10));
+$("balance-sheet-plus").addEventListener("click", () => setBalanceSheetAmount(balanceSheetAmount + 10));
+$("balance-sheet-presets").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-sheet-preset]");
+  if (button) setBalanceSheetAmount(Number(button.dataset.sheetPreset));
+});
+$("balance-sheet-modal").querySelectorAll("[data-balance-provider]").forEach((button) => {
+  button.addEventListener("click", () => startBalanceSheetDeposit(button.dataset.balanceProvider));
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !$("balance-sheet-modal").hidden) {
+    event.preventDefault();
+    closeBalanceSheet();
+  }
+});
 $("update-news-open").addEventListener("click", () => {
   $("news-modal").hidden = false;
   $("news-modal-close").focus();
@@ -67,7 +86,14 @@ document.addEventListener("keydown", (event) => {
 });
 $("quantity-minus").addEventListener("click", () => changeQuantity(-1));
 $("quantity-plus").addEventListener("click", () => changeQuantity(1));
-$("pay-balance").addEventListener("click", () => submitPurchase("balance"));
+$("pay-balance").addEventListener("click", () => {
+  const total = baseCheckoutTotal() * (1 - (activePromo?.amount || 0) / 100);
+  if (Number.isFinite(Number(currentBalance)) && Number(currentBalance) < total) {
+    openBalanceSheet(total - Number(currentBalance));
+    return;
+  }
+  submitPurchase("balance");
+});
 $("pay-xrocket").addEventListener("click", () => submitPurchase("xrocket"));
 $("pay-cryptobot").addEventListener("click", () => submitPurchase("cryptobot"));
 $("pay-stars").addEventListener("click", () => submitPurchase("stars"));
@@ -380,7 +406,7 @@ document.body.addEventListener("click", async (event) => {
   const repeatButton = event.target.closest("[data-repeat-cat]");
   if (repeatButton) {
     const item = categories.find((entry) => String(entry.id) === repeatButton.dataset.repeatCat);
-    if (item && item.stock > 0) { showView("catalog-view"); openCheckout(item); }
+    if (item && item.stock > 0) { showView("catalog-view"); startPurchase(item); }
     else showToast("Товар закончился", "error");
   }
   const favoriteButton = event.target.closest("[data-favorite-id]");
@@ -415,6 +441,7 @@ checkoutNode.addEventListener("click", (event) => {
   if (event.target === checkoutNode) closeCheckout();
 });
 document.addEventListener("keydown", (event) => {
+  if (!$("balance-sheet-modal").hidden) return;
   if (checkoutNode.hidden) return;
   if (event.key === "Escape") {
     event.preventDefault();
@@ -639,7 +666,7 @@ async function openProductPage(item) {
       <section class="product-section product-description-section"><h2>Описание</h2><div class="product-description is-expanded"><p>${escapeHtml(product.description || "Описание отсутствует.")}</p></div></section>
       <section class="product-section"><h2>Отзывы</h2>${reviews.length ? `<div class="product-review-list">${reviews.slice(0, 3).map((review) => `<article class="review-line"><strong>★ ${Number(review.rating)}</strong><p>${escapeHtml(review.text || "")}</p></article>`).join("")}</div>` : `<p class="muted">Отзывов пока нет.</p>`}${canReview ? `<div class="review-form"><label>Ваша оценка <select id="review-rating"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></label><textarea id="review-text" maxlength="1000" placeholder="Расскажите о товаре"></textarea><button id="review-submit" class="secondary-button" type="button">Оставить отзыв</button><p id="review-status" class="form-status"></p></div>` : `<p class="muted">Оставить отзыв можно после покупки этого товара.</p>`}</section>
       <section class="product-section"><h2>Похожие товары</h2><div class="similar-products">${categories.filter((entry) => entry.id !== product.id && entry.group === product.group).slice(0, 3).map(cardTemplate).join("") || `<p class="muted">Похожих товаров пока нет.</p>`}</div></section>`;
-    $("product-buy").addEventListener("click", () => openCheckout(product));
+    $("product-buy").addEventListener("click", () => startPurchase(product));
     $("product-cart").addEventListener("click", () => { addToCart(product.id); showToast("Товар добавлен в корзину"); });
     if (canReview) $("review-submit").addEventListener("click", async () => {
       const button = $("review-submit");
@@ -821,7 +848,28 @@ function handleCatalogClick(event) {
       button.closest(".card")?.classList.remove("cart-added");
     }, 1200);
     showToast("Товар добавлен в корзину");
-  } else openCheckout(item);
+  } else startPurchase(item);
+}
+
+async function startPurchase(item) {
+  if (!item || Number(item.stock) < 1) return;
+  haptic("light");
+  const total = lineTotal(item, 1);
+  openBalanceSheet(total, true);
+  try {
+    await loadProfile();
+  } catch (error) {
+    showToast(error.message || "Не удалось проверить баланс", "error");
+    return;
+  }
+  const balance = Number(currentBalance);
+  if (!Number.isFinite(balance)) {
+    showToast("Не удалось проверить баланс", "error");
+    return;
+  }
+  if (balance < total) {
+    openBalanceSheet(total - balance);
+  }
 }
 
 function openCheckout(item) {
@@ -917,7 +965,7 @@ function baseCheckoutTotal() {
 }
 
 function updateCheckout() {
-  if (checkoutMode === "single") {
+  if (checkoutMode === "single" && selected) {
     quantityNode.textContent = quantity;
     $("quantity-minus").disabled = quantity <= 1;
     $("quantity-plus").disabled = quantity >= Number(selected.stock);
@@ -936,6 +984,131 @@ function updateCheckout() {
     $("checkout-shortage").textContent = `Не хватает ${(total - balance).toFixed(2)} USDT`;
   }
   $("pay-balance").disabled = hasBalance && balance < total;
+}
+
+function openBalanceSheet(shortage, purchaseMode = false) {
+  balanceSheetAmount = Math.max(1, Math.ceil((Number(shortage) || 1) * 100) / 100);
+  $("balance-sheet-message").textContent = purchaseMode
+    ? `Пополните баланс для покупки на ${balanceSheetAmount.toFixed(2)} USDT`
+    : `Не хватает ${Math.max(0, Number(shortage || 0)).toFixed(2)} USDT для покупки`;
+  $("balance-sheet-status").textContent = "";
+  const presets = [...new Set([balanceSheetAmount, 50, 100, 250, 500])]
+    .filter((amount) => amount >= 1 && amount <= 10000)
+    .slice(0, 5);
+  $("balance-sheet-presets").innerHTML = presets
+    .map((amount) => `<button type="button" data-sheet-preset="${amount}" class="${amount === balanceSheetAmount ? "active" : ""}">${Number.isInteger(Number(amount)) ? String(Number(amount)) : Number(amount).toFixed(2)}</button>`)
+    .join("");
+  $("balance-sheet-modal").hidden = false;
+  document.body.classList.add("balance-sheet-open");
+  setBalanceSheetAmount(balanceSheetAmount);
+  haptic("light");
+  requestAnimationFrame(() => $("balance-sheet-close").focus());
+}
+
+function closeBalanceSheet() {
+  $("balance-sheet-modal").hidden = true;
+  document.body.classList.remove("balance-sheet-open");
+}
+
+function pollBalanceSheetDeposit(invoiceId, amount) {
+  if (balanceSheetPollTimer) clearInterval(balanceSheetPollTimer);
+  let attempts = 0;
+  balanceSheetPollTimer = setInterval(async () => {
+    if (++attempts > 90) {
+      clearInterval(balanceSheetPollTimer);
+      balanceSheetPollTimer = null;
+      $("balance-sheet-status").textContent = "Время ожидания истекло.";
+      return;
+    }
+    try {
+      const result = await api(`/api/deposit/status?invoice_id=${encodeURIComponent(invoiceId)}`);
+      if (result.status === "paid") {
+        clearInterval(balanceSheetPollTimer);
+        balanceSheetPollTimer = null;
+        currentBalance = Number(result.balance);
+        $("balance-sheet-status").textContent = "Оплата подтверждена.";
+        haptic("success");
+        showToast(`Баланс пополнен на ${Number(amount || 0).toFixed(2)} USDT`);
+        loadProfile().then(updateCheckout);
+      } else if (result.status === "expired") {
+        clearInterval(balanceSheetPollTimer);
+        balanceSheetPollTimer = null;
+        $("balance-sheet-status").textContent = "Счёт просрочен. Выберите сумму ещё раз.";
+      }
+    } catch (error) {
+      if (error.status !== 404 && error.status !== 502) {
+        $("balance-sheet-status").textContent = error.message || "Не удалось проверить оплату.";
+      }
+    }
+  }, 4000);
+}
+
+function setBalanceSheetAmount(amount) {
+  balanceSheetAmount = Math.max(1, Math.min(10000, Number(amount) || 1));
+  balanceSheetAmount = Math.round(balanceSheetAmount * 100) / 100;
+  $("balance-sheet-value").textContent = balanceSheetAmount.toFixed(2);
+  $("balance-sheet-minus").disabled = balanceSheetAmount <= 1;
+  $("balance-sheet-modal").querySelectorAll("[data-sheet-preset]").forEach((button) => {
+    button.classList.toggle("active", Math.abs(Number(button.dataset.sheetPreset) - balanceSheetAmount) < 0.001);
+  });
+}
+
+async function startBalanceSheetDeposit(provider) {
+  if (!await waitForTelegramInitData()) {
+    $("balance-sheet-status").textContent = "Откройте приложение из Telegram.";
+    return;
+  }
+  const providerButtons = $("balance-sheet-modal").querySelectorAll("[data-balance-provider]");
+  providerButtons.forEach((button) => button.disabled = true);
+  $("balance-sheet-status").textContent = "Создаём счёт...";
+  haptic("medium");
+  try {
+    const result = await api("/api/deposit", {
+      method: "POST",
+      body: JSON.stringify({ amount: balanceSheetAmount, provider })
+    });
+    if (provider === "stars") {
+      if (!tg?.openInvoice || !result.invoice_link) throw new Error("Telegram Stars недоступны в этом клиенте.");
+      tg.openInvoice(result.invoice_link, (invoiceStatus) => {
+        if (invoiceStatus === "paid") {
+          $("balance-sheet-status").textContent = "Баланс пополнен.";
+          loadProfile().then(updateCheckout);
+          haptic("success");
+        } else if (invoiceStatus === "cancelled" || invoiceStatus === "failed") {
+          $("balance-sheet-status").textContent = "Оплата отменена.";
+        }
+      });
+      return;
+    }
+    if ((result.provider || provider) === "cryptobot") {
+      if (!result.pay_url) throw new Error("Ссылка CryptoBot недоступна.");
+      $("balance-sheet-status").textContent = "Ожидаем оплату CryptoBot...";
+      pollBalanceSheetDeposit(result.invoice_id, balanceSheetAmount);
+      openPaymentLink(result.pay_url);
+      return;
+    }
+    const providerName = provider === "cryptobot" ? "CryptoBot" : "xRocket";
+    xrocketChoice = {
+      payUrl: result.pay_url,
+      amount: balanceSheetAmount,
+      invoiceId: result.invoice_id,
+      mode: "deposit",
+      provider: result.provider || provider,
+      qrShown: false,
+    };
+    $("xrocket-choice-qr-panel").hidden = true;
+    $("xrocket-qr-choice").textContent = "Оплатить через QR-код";
+    setExternalPaymentProvider(result.provider || provider);
+    $("xrocket-choice-description").textContent = `Счёт создан на ${balanceSheetAmount.toFixed(2)} USDT. Перейдите в ${providerName} или оплатите по QR-коду.`;
+    $("xrocket-open-choice").textContent = `Перейти в ${providerName}`;
+    $("xrocket-choice-modal").hidden = false;
+    $("balance-sheet-status").textContent = `Ожидаем оплату ${providerName}...`;
+  } catch (error) {
+    $("balance-sheet-status").textContent = error.message;
+    showToast(error.message, "error");
+  } finally {
+    providerButtons.forEach((button) => button.disabled = false);
+  }
 }
 
 async function applyPromo(input, output) {
@@ -1368,8 +1541,8 @@ async function loadHistory() {
 
 async function loadFavorites() {
   if (!await waitForTelegramInitData()) {
-    $("favorites-status").textContent = "Избранное доступно при открытии приложения из Telegram.";
-    $("favorites-list").innerHTML = "";
+    $("favorites-status").hidden = true;
+    $("favorites-list").innerHTML = `<div class="empty-state favorites-empty"><span class="empty-illustration" aria-hidden="true">★</span><strong>В избранном пока пусто</strong><span>Нажмите звёздочку на товаре, который хотите сохранить.</span><button class=\"secondary-button\" data-view=\"catalog-view\" type=\"button\">Перейти в каталог</button></div>`;
     return;
   }
   $("favorites-status").hidden = true;

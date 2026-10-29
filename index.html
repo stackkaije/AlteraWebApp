@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=165">
+  <link rel="stylesheet" href="./style.css?v=178">
 </head>
 <body>
   <main class="app">
@@ -324,6 +324,39 @@
       </section>
     </div>
   </section>
+  <section id="balance-sheet-modal" class="balance-sheet-modal" hidden aria-modal="true" role="dialog" aria-labelledby="balance-sheet-title">
+    <div class="balance-sheet-backdrop"></div>
+    <div class="balance-sheet" role="document">
+      <div class="balance-sheet-grabber" aria-hidden="true"></div>
+      <div class="balance-sheet-header">
+        <div><span class="checkout-kicker balance-sheet-kicker">Пополнение</span><h2 id="balance-sheet-title">Недостаточно средств</h2></div>
+        <button id="balance-sheet-close" class="modal-close" type="button" aria-label="Закрыть"></button>
+      </div>
+      <p id="balance-sheet-message" class="balance-sheet-message"></p>
+      <div class="balance-sheet-amount">
+        <button id="balance-sheet-minus" type="button" aria-label="Уменьшить сумму">−</button>
+        <div><strong><img class="balance-sheet-coins" src="./assets/tether-usdt-icon.png" alt="" aria-hidden="true"><span id="balance-sheet-value">0</span></strong><small>USDT</small></div>
+        <button id="balance-sheet-plus" type="button" aria-label="Увеличить сумму">+</button>
+      </div>
+      <div id="balance-sheet-presets" class="balance-sheet-presets" aria-label="Быстрый выбор суммы"></div>
+      <strong class="balance-sheet-label">Способ пополнения</strong>
+      <div class="balance-sheet-providers">
+        <button type="button" class="balance-provider-option" data-balance-provider="xrocket">
+          <img class="provider-icon" src="./assets/xrocket-icon.png" alt="">
+          <span><strong>xRocket</strong><small>Пополнение через Telegram</small></span><b aria-hidden="true">›</b>
+        </button>
+        <button type="button" class="balance-provider-option" data-balance-provider="cryptobot">
+          <img class="provider-icon" src="./assets/cryptobot-icon.png" alt="">
+          <span><strong>CryptoBot</strong><small>Пополнение криптовалютой</small></span><b aria-hidden="true">›</b>
+        </button>
+        <button type="button" class="balance-provider-option" data-balance-provider="stars">
+          <img class="provider-icon" src="./assets/telegram-stars-icon.png" alt="">
+          <span><strong>Telegram Stars</strong><small>Оплата звёздами Telegram</small></span><b aria-hidden="true">›</b>
+        </button>
+      </div>
+      <p id="balance-sheet-status" class="form-status" aria-live="polite"></p>
+    </div>
+  </section>
   <section id="xrocket-choice-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="xrocket-choice-title">
     <div class="info-modal-dialog xrocket-choice-dialog">
       <div class="checkout-header"><div><span id="external-payment-provider" class="checkout-kicker">ОПЛАТА</span><h2 id="xrocket-choice-title">Как оплатить?</h2></div><button id="xrocket-choice-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div>
@@ -376,6 +409,6 @@
       </article>
     </div>
   </section>
-  <script src="./app.js?v=138"></script>
+  <script src="./app.js?v=178"></script>
 </body>
 </html>
