@@ -1081,10 +1081,17 @@ async function startBalanceSheetDeposit(provider) {
       return;
     }
     if ((result.provider || provider) === "cryptobot") {
-      if (!result.pay_url) throw new Error("Ссылка CryptoBot недоступна.");
+      const cryptobotUrl = result.mini_app_url || result.pay_url;
+      if (!cryptobotUrl) throw new Error("Ссылка CryptoBot недоступна.");
       $("balance-sheet-status").textContent = "Ожидаем оплату CryptoBot...";
       pollBalanceSheetDeposit(result.invoice_id, balanceSheetAmount);
-      openPaymentLink(result.pay_url);
+      if (tg?.openTelegramLink && /^https:\/\/t\.me\//i.test(cryptobotUrl)) {
+        tg.openTelegramLink(cryptobotUrl);
+      } else if (tg?.openLink) {
+        tg.openLink(cryptobotUrl);
+      } else {
+        window.open(cryptobotUrl, "_blank", "noopener,noreferrer");
+      }
       return;
     }
     const providerName = provider === "cryptobot" ? "CryptoBot" : "xRocket";
