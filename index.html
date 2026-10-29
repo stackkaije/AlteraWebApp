@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=184">
+  <link rel="stylesheet" href="./style.css?v=186">
 </head>
 <body>
   <main class="app">
@@ -77,8 +77,9 @@
         <h1>Выбери <span>своё.</span></h1>
       </header>
       <section class="update-banner" aria-label="Обновление">
-        <button id="update-news-open" class="update-banner-button" type="button" aria-label="Открыть новости: обновление от 24.10.2026">
+        <button id="update-news-open" class="update-banner-button" type="button" aria-label="Открыть новости: обновление от 29.10.2026">
           <img src="./assets/update-banner.png" alt="Обновление" width="1280" height="360">
+          <span class="update-banner-date">Редактировано 29.10</span>
         </button>
       </section>
       <div class="catalog-search">
@@ -371,11 +372,21 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><section class="rebind-panel" aria-labelledby="rebind-title"><div class="rebind-heading"><span class="rebind-icon" aria-hidden="true">↗</span><div><h3 id="rebind-title">Смена номера</h3><p>Укажите номер, который хотите привязать</p></div></div><label class="rebind-field"><span>Номер телефона</span><input type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" disabled></label><p class="rebind-security-note">Подтверждение проходит на специализированном сервисе. Код вводите только там — бот его не запрашивает. Данные никакие не собираются.</p><button class="primary-button rebind-button" type="button" disabled>Перейти</button></section><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button></div></div>
   </section>
-  <section id="news-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-label="Обновление от 24.10.2026">
+  <section id="news-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-label="Обновление от 29.10.2026">
     <div class="info-modal-dialog news-dialog">
       <div class="checkout-header news-header">
         <button id="news-modal-close" class="modal-close" type="button" aria-label="Закрыть">×</button>
       </div>
+      <article class="news-post">
+        <h3>Обновление от 29.10.2026</h3>
+        <ul>
+          <li>Обновлён дизайн окна пополнения баланса;</li>
+          <li>При покупке Crypto Pay и xRocket теперь открывают окно оплаты сразу, без лишних заморочек;</li>
+          <li>Добавлено автоматическое отслеживание оплаты и обновление баланса;</li>
+          <li>Незначительные правки.</li>
+        </ul>
+      </article>
+      <hr class="news-divider">
       <article class="news-post">
         <h3>Обновление от 24.10.2026</h3>
         <ul>
@@ -409,6 +420,6 @@
       </article>
     </div>
   </section>
-  <script src="./app.js?v=184"></script>
+  <script src="./app.js?v=186"></script>
 </body>
 </html>
