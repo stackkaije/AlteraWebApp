@@ -1100,17 +1100,18 @@ async function startBalanceSheetDeposit(provider) {
       return;
     }
     if ((result.provider || provider) === "xrocket") {
-      if (!result.pay_url) throw new Error("Ссылка xRocket недоступна.");
+      const xrocketUrl = result.mini_app_url || result.pay_url;
+      if (!xrocketUrl) throw new Error("Ссылка xRocket недоступна.");
       $("balance-sheet-status").textContent = "Ожидаем оплату xRocket...";
       pollBalanceSheetDeposit(result.invoice_id, balanceSheetAmount);
       if (balanceSheetContext === "purchase") {
         $("xrocket-choice-modal").hidden = true;
         closeBalanceSheet();
-        openPaymentLink(result.pay_url);
+        openPaymentLink(xrocketUrl);
         return;
       }
       xrocketChoice = {
-        payUrl: result.pay_url,
+        payUrl: xrocketUrl,
         amount: balanceSheetAmount,
         invoiceId: result.invoice_id,
         mode: "deposit",
@@ -1239,13 +1240,16 @@ function submitPurchase(payment) {
         return;
       }
       if (["xrocket", "cryptobot"].includes(result.provider) && result.pay_url) {
-        pendingPayment = { ...result, purchaseLines };
+        const paymentUrl = result.provider === "xrocket"
+          ? (result.mini_app_url || result.pay_url)
+          : result.pay_url;
+        pendingPayment = { ...result, pay_url: paymentUrl, purchaseLines };
         showPaymentWaiting(pendingPayment);
         showToast(`Счёт ${result.provider === "cryptobot" ? "CryptoBot" : "xRocket"} создан`);
         pollPurchasePayment();
         if (result.provider === "xrocket") {
           $("xrocket-choice-modal").hidden = true;
-          openPaymentLink(result.pay_url);
+          openPaymentLink(paymentUrl);
         }
         return;
       }
