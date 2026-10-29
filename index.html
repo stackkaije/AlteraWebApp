@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=164">
+  <link rel="stylesheet" href="./style.css?v=165">
 </head>
 <body>
   <main class="app">
@@ -126,7 +126,7 @@
           </div>
         </div>
       </div>
-      <p id="status" class="status">Загрузка каталога...</p>
+      <p id="status" class="status" hidden>Загрузка каталога...</p>
       <section id="catalog" class="catalog"></section>
     </section>
 
@@ -302,16 +302,18 @@
         <button id="checkout-promo-apply" class="accent-button">Применить</button>
       </div>
       <p id="checkout-promo-status" class="form-status"></p>
-      <div class="checkout-summary" aria-live="polite">
-        <span id="checkout-balance">Баланс: загрузка...</span>
-        <span id="checkout-shortage" class="checkout-shortage" hidden></span>
-      </div>
-      <p id="checkout-total" class="total"></p>
-      <div id="payment-options" class="payment-options">
-        <button id="pay-balance" class="pay-button">Оплатить с баланса</button>
-        <button id="pay-xrocket" class="pay-button secondary" aria-label="Оплатить через xRocket"><img class="provider-icon" src="./assets/xrocket-icon.png" alt=""><span>xRocket</span></button>
-        <button id="pay-cryptobot" class="pay-button secondary" aria-label="Оплатить через CryptoBot"><img class="provider-icon" src="./assets/cryptobot-icon.png" alt=""><span>CryptoBot</span></button>
-        <button id="pay-stars" class="pay-button secondary" aria-label="Оплатить через Telegram Stars"><img class="provider-icon" src="./assets/telegram-stars-icon.png" alt=""><span>Telegram Stars</span></button>
+      <div class="checkout-sticky-summary">
+        <div class="checkout-summary" aria-live="polite">
+          <span id="checkout-balance">Баланс: загрузка...</span>
+          <span id="checkout-shortage" class="checkout-shortage" hidden></span>
+        </div>
+        <p id="checkout-total" class="total"></p>
+        <div id="payment-options" class="payment-options">
+          <button id="pay-balance" class="pay-button">Оплатить с баланса</button>
+          <button id="pay-xrocket" class="pay-button secondary" aria-label="Оплатить через xRocket"><img class="provider-icon" src="./assets/xrocket-icon.png" alt=""><span>xRocket</span></button>
+          <button id="pay-cryptobot" class="pay-button secondary" aria-label="Оплатить через CryptoBot"><img class="provider-icon" src="./assets/cryptobot-icon.png" alt=""><span>CryptoBot</span></button>
+          <button id="pay-stars" class="pay-button secondary" aria-label="Оплатить через Telegram Stars"><img class="provider-icon" src="./assets/telegram-stars-icon.png" alt=""><span>Telegram Stars</span></button>
+        </div>
       </div>
       <section id="payment-waiting" class="payment-waiting" hidden aria-live="polite">
         <div class="waiting-heading"><span class="waiting-icon" aria-hidden="true">◷</span><div><strong>Ожидаем оплату</strong><span id="waiting-order">Счёт создан</span></div></div>
@@ -374,6 +376,6 @@
       </article>
     </div>
   </section>
-  <script src="./app.js?v=137"></script>
+  <script src="./app.js?v=138"></script>
 </body>
 </html>

@@ -738,10 +738,10 @@ function renderCatalogSkeleton(count = 6) {
   catalogNode.innerHTML = `<div class="skeleton-grid">${Array.from({ length: count }, () => `
     <article class="card skeleton-card" aria-hidden="true">
       <div class="skeleton skeleton-short"></div><div class="skeleton skeleton-title"></div>
-      <div class="skeleton skeleton-price"></div><div class="skeleton skeleton-buttons"></div>
+      <div class="skeleton skeleton-description"></div><div class="skeleton skeleton-price"></div>
+      <div class="skeleton skeleton-buttons"></div>
     </article>`).join("")}</div>`;
-    statusNode.hidden = false;
-    statusNode.textContent = "Загрузка каталога...";
+  statusNode.hidden = true;
 }
 
 function cardTemplate(item) {
@@ -893,6 +893,10 @@ function closeCheckout() {
 function changeQuantity(delta) {
   if (!selected) return;
   quantity = Math.max(1, Math.min(Number(selected.stock), quantity + delta));
+  quantityNode.classList.remove("quantity-pop");
+  void quantityNode.offsetWidth;
+  quantityNode.classList.add("quantity-pop");
+  haptic("light");
   updateCheckout();
 }
 
@@ -1368,8 +1372,9 @@ async function loadFavorites() {
     $("favorites-list").innerHTML = "";
     return;
   }
-  $("favorites-status").hidden = false;
-  $("favorites-status").textContent = "Загрузка...";
+  $("favorites-status").hidden = true;
+  $("favorites-list").innerHTML = `<div class="skeleton-grid favorite-skeleton-grid">${Array.from({ length: 3 }, () => `
+    <article class="card skeleton-card" aria-hidden="true"><div class="skeleton skeleton-short"></div><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-description"></div><div class="skeleton skeleton-price"></div><div class="skeleton skeleton-buttons"></div></article>`).join("")}</div>`;
   try {
     const data = await api("/api/favorites");
     favoriteItems = data.favorites || [];
@@ -1386,9 +1391,8 @@ async function loadFavorites() {
           <button type="button" class="notification-toggle ${item.notify_price ? "active" : ""}" data-favorite-notify="price" data-id="${item.id}" aria-pressed="${item.notify_price ? "true" : "false"}">Цена ${item.notify_price ? "включена" : "выключена"}</button>
           <button type="button" class="notification-toggle ${item.notify_stock ? "active" : ""}" data-favorite-notify="stock" data-id="${item.id}" aria-pressed="${item.notify_stock ? "true" : "false"}">Наличие ${item.notify_stock ? "включено" : "выключено"}</button>
         </div>`).join("")}</div>`
-      : `<div class="empty-state">Сохранённых товаров пока нет.<br>Нажмите звёздочку в карточке товара.</div>`;
-    $("favorites-status").hidden = visible.length > 0;
-    $("favorites-status").textContent = visible.length ? "" : "Нет подходящих товаров";
+      : `<div class="empty-state favorites-empty"><span class="empty-illustration" aria-hidden="true">★</span><strong>В избранном пока пусто</strong><span>Нажмите звёздочку на товаре, который хотите сохранить.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>`;
+    $("favorites-status").hidden = true;
   } catch (error) { $("favorites-status").hidden = false; $("favorites-status").innerHTML = `${escapeHtml(error.message)} <button class="text-button inline-retry" type="button" data-retry="favorites">Повторить</button>`; }
 }
 
@@ -1408,6 +1412,10 @@ async function toggleFavorite(catId, button) {
     if (item) item.favorite = !isFavorite;
     button.classList.toggle("is-favorite", !isFavorite);
     button.innerHTML = favoriteIcon(!isFavorite);
+    button.classList.remove("favorite-pop");
+    void button.offsetWidth;
+    button.classList.add("favorite-pop");
+    haptic(!isFavorite ? "medium" : "light");
     button.setAttribute("aria-pressed", String(!isFavorite));
     button.setAttribute("aria-label", isFavorite ? "Добавить в избранное" : "Удалить из избранного");
     showToast(isFavorite ? "Удалено из избранного" : "Добавлено в избранное");
