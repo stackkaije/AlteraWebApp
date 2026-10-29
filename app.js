@@ -56,6 +56,13 @@ syncFixedPanelsWithKeyboard();
 $("checkout-close").addEventListener("click", closeCheckout);
 $("balance-sheet-close").addEventListener("click", closeBalanceSheet);
 $("balance-sheet-modal").querySelector(".balance-sheet-backdrop").addEventListener("click", closeBalanceSheet);
+$("cart-sheet-close").addEventListener("click", closeCartSheet);
+$("cart-sheet-modal").querySelector(".cart-sheet-backdrop").addEventListener("click", closeCartSheet);
+$("cart-sheet-list").addEventListener("click", handleCartClick);
+$("cart-sheet-checkout").addEventListener("click", () => {
+  closeCartSheet();
+  openCartCheckout();
+});
 $("balance-sheet-minus").addEventListener("click", () => setBalanceSheetAmount(balanceSheetAmount - 10));
 $("balance-sheet-plus").addEventListener("click", () => setBalanceSheetAmount(balanceSheetAmount + 10));
 $("balance-sheet-presets").addEventListener("click", (event) => {
@@ -69,6 +76,12 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !$("balance-sheet-modal").hidden) {
     event.preventDefault();
     closeBalanceSheet();
+  }
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !$("cart-sheet-modal").hidden) {
+    event.preventDefault();
+    closeCartSheet();
   }
 });
 $("update-news-open").addEventListener("click", () => {
@@ -235,7 +248,7 @@ $("favorites-buy-all").addEventListener("click", () => {
   const available = favoriteItems.filter((item) => item.stock > 0);
   if (!available.length) return showToast("В избранном нет товаров в наличии", "error");
   available.forEach((item) => addToCart(item.id));
-  showView("cart-view");
+  openCartSheet();
   showToast("Доступные товары добавлены в корзину");
 });
 $("success-close").addEventListener("click", closeSuccess);
@@ -281,7 +294,13 @@ document.body.addEventListener("click", (event) => {
   if (retry.dataset.retry === "favorites") loadFavorites();
   if (retry.dataset.retry === "catalog") loadCatalog();
 });
-document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => showView(tab.dataset.view)));
+document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => {
+  if (tab.dataset.view === "cart-view") {
+    openCartSheet();
+    return;
+  }
+  showView(tab.dataset.view);
+}));
 $("p2p-create-toggle").addEventListener("click", () => {
   showToast("Отдел на доработке, ещё немного и он откроется.");
 });
@@ -656,7 +675,7 @@ async function openProductPage(item) {
           </div>
         </div>
         <div class="product-drop-purchase">
-          <div class="product-drop-price"><span>ЦЕНА</span><strong>${Number(product.price).toFixed(2)} <small>USDT</small></strong></div>
+          <div class="product-drop-price"><span>Цена</span><strong>${Number(product.price).toFixed(2)} <img class="tether-price-icon product-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></strong></div>
           ${product.stock > 0 ? `<p class="product-drop-fulfillment">Моментальная выдача после оплаты</p>` : ""}
           <div class="product-actions product-drop-actions">
             <button id="product-buy" class="primary-button" ${product.stock < 1 ? "disabled" : ""}>${product.stock < 1 ? "Нет в наличии" : product.has_purchased_category === true ? "Купить снова" : "Купить сейчас"}</button>
@@ -788,7 +807,7 @@ function cardTemplate(item) {
       </div>
     </div>
     <div class="card-bottom">
-      <div class="card-price-stock"><div class="price">${Number(item.price).toFixed(2)} <small>USDT</small></div><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии: ${item.stock}шт` : "Нет в наличии"}</span></div>
+      <div class="card-price-stock"><div class="price">${Number(item.price).toFixed(2)} <img class="tether-price-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></div><span class="stock ${item.stock > 0 ? "stock-available" : "stock-empty"}">${item.stock > 0 ? `В наличии: ${item.stock}шт` : "Нет в наличии"}</span></div>
       <div class="card-actions">${item.stock > 0 ? `<button class="cart-add" data-id="${item.id}">В корзину</button>` : ""}<button class="buy" data-id="${item.id}" ${item.stock < 1 ? "disabled" : ""}>${item.stock < 1 ? "Нет в наличии" : "Купить"}</button></div>
     </div>
   </article>`;
@@ -897,13 +916,28 @@ function openCheckout(item) {
   requestAnimationFrame(() => $("checkout-close").focus());
 }
 
-function openCartCheckout() {
+async function openCartCheckout() {
   if (!cart.length) return;
   const unavailable = cart.some((line) => {
     const item = categories.find((entry) => entry.id === line.id);
     return !item || item.stock < 1 || line.quantity > item.stock;
   });
   if (unavailable) return showToast("Уберите недоступные товары из корзины", "error");
+  try {
+    await loadProfile();
+  } catch (error) {
+    showToast(error.message || "Не удалось проверить баланс", "error");
+    return;
+  }
+  const balance = Number(currentBalance);
+  const cartBaseTotal = baseCartTotal();
+  const discount = activePromo?.promo_type === "percent" ? Number(activePromo.amount) : 0;
+  const cartTotal = cartBaseTotal * (1 - (Number.isFinite(discount) ? discount : 0) / 100);
+  if (Number.isFinite(balance) && balance < cartTotal) {
+    openBalanceSheet(cartTotal - balance, true);
+    return;
+  }
+  closeBalanceSheet();
   selected = null;
   checkoutReturnFocus = document.activeElement;
   checkoutRequestKey = crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -992,9 +1026,10 @@ function updateCheckout() {
 function openBalanceSheet(shortage, purchaseMode = false) {
   balanceSheetContext = purchaseMode ? "purchase" : "profile";
   balanceSheetAmount = Math.max(1, Math.ceil((Number(shortage) || 1) * 100) / 100);
-  $("balance-sheet-message").textContent = purchaseMode
-    ? `Пополните баланс для покупки на ${balanceSheetAmount.toFixed(2)} USDT`
-    : `Не хватает ${Math.max(0, Number(shortage || 0)).toFixed(2)} USDT для покупки`;
+  const balanceSheetCoin = '<img class="balance-sheet-inline-coins" src="./assets/tether-usdt-icon.png" alt="Tether" aria-label="Tether">';
+  $("balance-sheet-message").innerHTML = purchaseMode
+    ? `Пополните баланс для покупки на ${balanceSheetAmount.toFixed(2)} ${balanceSheetCoin}`
+    : `Не хватает ${Math.max(0, Number(shortage || 0)).toFixed(2)} ${balanceSheetCoin} для покупки`;
   $("balance-sheet-status").textContent = "";
   const presets = [...new Set([balanceSheetAmount, 50, 100, 250, 500])]
     .filter((amount) => amount >= 1 && amount <= 10000)
@@ -1013,6 +1048,19 @@ function closeBalanceSheet() {
   $("balance-sheet-modal").hidden = true;
   document.body.classList.remove("balance-sheet-open");
   balanceSheetContext = "profile";
+}
+
+function openCartSheet() {
+  renderCartSheet();
+  $("cart-sheet-modal").hidden = false;
+  document.body.classList.add("balance-sheet-open");
+  haptic("light");
+  requestAnimationFrame(() => $("cart-sheet-close").focus());
+}
+
+function closeCartSheet() {
+  $("cart-sheet-modal").hidden = true;
+  document.body.classList.remove("balance-sheet-open");
 }
 
 function pollBalanceSheetDeposit(invoiceId, amount) {
@@ -1477,7 +1525,7 @@ function renderCart() {
     const unavailable = item.stock < 1;
     const priceChanged = line.price != null && Number(line.price) !== Number(item.price);
     const stockChanged = item.stock > 0 && line.quantity > item.stock;
-    return `<article class="cart-line ${unavailable ? "is-unavailable" : ""}"><div><strong>${escapeHtml(item.name)}</strong><span>${Number(item.price).toFixed(2)} USDT</span>${priceChanged ? `<em class="cart-warning">Цена изменилась с ${Number(line.price).toFixed(2)} USDT</em>` : ""}${stockChanged ? `<em class="cart-warning">Доступно только ${item.stock} шт.</em>` : ""}${unavailable ? `<em class="cart-warning">Нет в наличии</em>` : ""}</div>
+    return `<article class="cart-line ${unavailable ? "is-unavailable" : ""}"><div><strong>${escapeHtml(item.name)}</strong><span>${Number(item.price).toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></span>${priceChanged ? `<em class="cart-warning">Цена изменилась с ${Number(line.price).toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></em>` : ""}${stockChanged ? `<em class="cart-warning">Доступно только ${item.stock} шт.</em>` : ""}${unavailable ? `<em class="cart-warning">Нет в наличии</em>` : ""}</div>
       <div class="cart-controls"><button data-action="minus" data-id="${item.id}" aria-label="Уменьшить количество">−</button><b class="quantity-value">${line.quantity}</b><button data-action="plus" data-id="${item.id}" ${unavailable ? "disabled" : ""} aria-label="Увеличить количество">+</button><button class="remove" data-action="remove" data-id="${item.id}">Удалить</button></div></article>`;
   }).join("");
   const hasItems = cart.length > 0;
@@ -1490,8 +1538,8 @@ function renderCart() {
   }, 0);
   const total = baseCartTotal();
   const savings = Math.max(0, baseTotal - total);
-  $("cart-total").innerHTML = `${total.toFixed(2)} USDT`;
-  $("cart-savings").textContent = `${savings.toFixed(2)} USDT`;
+  $("cart-total").innerHTML = `${total.toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether">`;
+  $("cart-savings").innerHTML = `${savings.toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether">`;
   const count = cart.reduce((sum, line) => sum + line.quantity, 0);
   const bonusTarget = 10;
   const progress = Math.min(100, count / bonusTarget * 100);
@@ -1502,7 +1550,7 @@ function renderCart() {
   $("cart-count").hidden = count < 1;
   $("cart-bar").hidden = count < 1 || !$("catalog-view").classList.contains("active-view");
   $("cart-bar-count").textContent = count;
-  $("cart-bar-total").textContent = `${baseCartTotal().toFixed(2)} USDT`;
+  $("cart-bar-total").innerHTML = `${baseCartTotal().toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether">`;
   if (count !== previousCartCount) {
     const countNode = $("cart-count");
     countNode.classList.remove("count-pop");
@@ -1510,6 +1558,40 @@ function renderCart() {
     countNode.classList.add("count-pop");
     previousCartCount = count;
   }
+  renderCartSheet();
+}
+
+function renderCartSheet() {
+  const validLines = cart.filter((line) => categories.some((item) => item.id === line.id));
+  const hasItems = validLines.length > 0;
+  $("cart-sheet-empty").hidden = hasItems;
+  $("cart-sheet-summary").hidden = !hasItems;
+  $("cart-sheet-list").hidden = !hasItems;
+  $("cart-sheet-list").innerHTML = validLines.map((line) => {
+    const item = categories.find((entry) => entry.id === line.id);
+    if (!item) return "";
+    const unavailable = item.stock < 1;
+    return `<article class="cart-sheet-line"><div><strong>${escapeHtml(item.name)}</strong><span>${Number(item.price).toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></span>${unavailable ? `<span class="cart-warning">Нет в наличии</span>` : ""}</div>
+      <div class="cart-controls"><button data-action="minus" data-id="${item.id}" aria-label="Уменьшить количество">−</button><b class="quantity-value">${line.quantity}</b><button data-action="plus" data-id="${item.id}" ${unavailable ? "disabled" : ""} aria-label="Увеличить количество">+</button><button class="remove" data-action="remove" data-id="${item.id}">Удалить</button></div></article>`;
+  }).join("");
+  const count = validLines.reduce((sum, line) => sum + line.quantity, 0);
+  const baseTotal = validLines.reduce((sum, line) => {
+    const item = categories.find((entry) => entry.id === line.id);
+    return sum + (item ? Number(item.price) * line.quantity : 0);
+  }, 0);
+  const total = baseCartTotal();
+  const savings = Math.max(0, baseTotal - total);
+  const bonusTarget = 10;
+  const progress = Math.min(100, count / bonusTarget * 100);
+  $("cart-sheet-progress-fill").style.width = `${progress}%`;
+  $("cart-sheet-progress-label").textContent = count >= bonusTarget ? "Бонус активирован" : "До скидки 20%";
+  $("cart-sheet-progress-value").textContent = count >= bonusTarget ? "−20%" : `ещё ${bonusTarget - count} ${plural(bonusTarget - count, "товар", "товара", "товаров")}`;
+  $("cart-sheet-savings").innerHTML = `${savings.toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether">`;
+  $("cart-sheet-total").innerHTML = `${total.toFixed(2)} <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether">`;
+  $("cart-sheet-checkout").disabled = !cart.length || cart.some((line) => {
+    const item = categories.find((entry) => entry.id === line.id);
+    return !item || item.stock < 1 || line.quantity > item.stock;
+  });
 }
 
 function baseCartTotal() {

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=186">
+  <link rel="stylesheet" href="./style.css?v=194">
 </head>
 <body>
   <main class="app">
@@ -256,7 +256,7 @@
       <div id="cart-empty" class="empty-state"><span class="empty-illustration" aria-hidden="true">🛒</span><strong>Корзина пока пуста</strong><span>Добавьте товары, чтобы оформить заказ.</span><button class="secondary-button" data-view="catalog-view" type="button">Перейти в каталог</button></div>
       <div id="cart-summary" class="cart-summary" hidden>
         <div class="cart-progress" aria-live="polite"><div class="cart-progress-heading"><span id="cart-progress-label">До бонуса</span><strong id="cart-progress-value"></strong></div><div class="progress-track"><span id="cart-progress-fill"></span></div></div>
-        <div class="cart-savings-row"><span>Ваша выгода</span><strong id="cart-savings">0.00 USDT</strong></div>
+        <div class="cart-savings-row"><span>Ваша выгода</span><strong id="cart-savings">0.00 <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></strong></div>
         <span>Итого</span><strong id="cart-total"></strong>
         <button id="cart-checkout" class="primary-button" type="button">Перейти к оплате</button>
       </div>
@@ -278,7 +278,7 @@
     </div>
   </section>
   <div id="cart-bar" class="cart-bar" hidden>
-    <span><strong id="cart-bar-count">0</strong> товаров · <strong id="cart-bar-total">0.00 USDT</strong></span>
+    <span><strong id="cart-bar-count">0</strong> товаров ·     <strong id="cart-bar-total">0.00 <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></strong></span>
     <button id="cart-bar-open" class="primary-button" type="button">Оформить</button>
   </div>
 
@@ -358,6 +358,31 @@
       <p id="balance-sheet-status" class="form-status" aria-live="polite"></p>
     </div>
   </section>
+  <section id="cart-sheet-modal" class="balance-sheet-modal cart-sheet-modal" hidden aria-modal="true" role="dialog" aria-labelledby="cart-sheet-title">
+    <div class="cart-sheet-backdrop balance-sheet-backdrop"></div>
+    <div class="balance-sheet cart-sheet" role="document">
+      <div class="balance-sheet-grabber" aria-hidden="true"></div>
+      <div class="balance-sheet-header">
+        <div><h2 id="cart-sheet-title">Корзина</h2></div>
+        <button id="cart-sheet-close" class="modal-close" type="button" aria-label="Закрыть">×</button>
+      </div>
+      <div id="cart-sheet-list" class="cart-sheet-list"></div>
+      <div id="cart-sheet-empty" class="empty-state cart-sheet-empty" hidden>
+        <span class="empty-illustration" aria-hidden="true">🛒</span>
+        <strong>Корзина пока пуста</strong>
+        <span>Добавьте товары, чтобы оформить заказ.</span>
+      </div>
+      <div id="cart-sheet-summary" class="cart-sheet-summary" hidden>
+        <div class="cart-progress" aria-live="polite">
+          <div class="cart-progress-heading"><span id="cart-sheet-progress-label">До скидки 20%</span><strong id="cart-sheet-progress-value"></strong></div>
+          <div class="progress-track"><span id="cart-sheet-progress-fill"></span></div>
+        </div>
+        <div class="cart-sheet-savings"><span>Ваша выгода</span><strong id="cart-sheet-savings">0.00 <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></strong></div>
+        <div class="cart-sheet-total"><span>Итого</span><strong id="cart-sheet-total">0.00 <img class="tether-price-icon cart-tether-icon" src="./assets/tether-usdt-icon.png" alt="" aria-label="Tether"></strong></div>
+        <button id="cart-sheet-checkout" class="primary-button" type="button">Перейти к оплате</button>
+      </div>
+    </div>
+  </section>
   <section id="xrocket-choice-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="xrocket-choice-title">
     <div class="info-modal-dialog xrocket-choice-dialog">
       <div class="checkout-header"><div><span id="external-payment-provider" class="checkout-kicker">ОПЛАТА</span><h2 id="xrocket-choice-title">Как оплатить?</h2></div><button id="xrocket-choice-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div>
@@ -381,6 +406,7 @@
         <h3>Обновление от 29.10.2026</h3>
         <ul>
           <li>Обновлён дизайн окна пополнения баланса;</li>
+          <li>Обновлён дизайн корзины;</li>
           <li>При покупке Crypto Pay и xRocket теперь открывают окно оплаты сразу, без лишних заморочек;</li>
           <li>Добавлено автоматическое отслеживание оплаты и обновление баланса;</li>
           <li>Незначительные правки.</li>
@@ -420,6 +446,6 @@
       </article>
     </div>
   </section>
-  <script src="./app.js?v=186"></script>
+  <script src="./app.js?v=194"></script>
 </body>
 </html>
