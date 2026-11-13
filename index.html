@@ -76,10 +76,10 @@
       <header class="topbar">
         <h1>Выбери <span>своё.</span></h1>
       </header>
-      <section class="update-banner" aria-label="Обновление">
-        <button id="update-news-open" class="update-banner-button" type="button" aria-label="Открыть новости: обновление от 29.10.2026">
-          <img src="./assets/update-banner.png" alt="Обновление" width="1280" height="360">
-          <span class="update-banner-date">Редактировано 29.10</span>
+      <section class="update-banner" aria-label="Логи обновлений">
+        <button id="update-news-open" class="update-banner-button" type="button" aria-label="Открыть логи обновлений">
+          <span>Логи обновлений</span>
+          <span class="update-banner-date">Обновлено 13.11</span>
         </button>
       </section>
       <div class="catalog-search">
@@ -199,16 +199,23 @@
     </section>
 
     <section id="profile-view" class="view" hidden>
-      <div class="section-heading profile-heading"><div><button class="settings-button" type="button" data-view="settings-view" aria-label="Открыть настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.95l-.36-2.54A.49.49 0 0 0 13.87 2h-3.84a.49.49 0 0 0-.49.41l-.36 2.54c-.59.23-1.13.55-1.63.95l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.48a.5.5 0 0 0 .12.64l2.03 1.58c-.05.3-.08.62-.08.94s.03.64.08.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.12.21.37.3.61.22l2.39-.96c.5.4 1.04.72 1.63.95l.36 2.54c.04.24.24.41.49.41h3.84c.25 0 .45-.17.49-.41l.36-2.54c.59-.23 1.13-.55 1.63-.95l2.39.96c.24.09.49-.01.61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg></button><h2>Профиль</h2></div></div>
+      <div class="section-heading profile-heading">
+        <div>
+          <button class="settings-button" type="button" data-view="settings-view" aria-label="Открыть настройки">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.95l-.36-2.54A.49.49 0 0 0 13.87 2h-3.84a.49.49 0 0 0-.49.41l-.36 2.54c-.59.23-1.13.55-1.63.95l-2.39-.96a.5.5 0 0 0-.61.22L2.63 8.48a.5.5 0 0 0 .12.64l2.03 1.58c-.05.3-.08.62-.08.94s.03.64.08.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.12.21.37.3.61.22l2.39-.96c.5.4 1.04.72 1.63.95l.36 2.54c.04.24.24.41.49.41h3.84c.25 0 .45-.17.49-.41l.36-2.54c.59.23.13.55 1.63.95l2.39.96c.24.09.49-.01.61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/></svg>
+          </button>
+          <h2>Профиль</h2>
+        </div>
+      </div>
       <section id="profile-card" class="profile-card"></section>
       <section class="profile-card deposit-card">
         <div class="profile-card-heading"><strong>Пополнить баланс</strong></div>
         <div class="deposit-amounts" role="group" aria-label="Сумма пополнения">
-          <button type="button" class="amount-option" data-amount="50">50</button>
-          <button type="button" class="amount-option" data-amount="75">75</button>
-          <button type="button" class="amount-option active" data-amount="100">100</button>
-          <button type="button" class="amount-option" data-amount="250">250</button>
-          <button type="button" class="amount-option" data-amount="500">500</button>
+          <button type="button" class="amount-option" data-amount="50"><img class="deposit-amount-icon" src="./assets/tether-usdt-icon.png" alt="" aria-hidden="true">50</button>
+          <button type="button" class="amount-option" data-amount="75"><img class="deposit-amount-icon" src="./assets/tether-usdt-icon.png" alt="" aria-hidden="true">75</button>
+          <button type="button" class="amount-option active" data-amount="100"><img class="deposit-amount-icon" src="./assets/tether-usdt-icon.png" alt="" aria-hidden="true">100</button>
+          <button type="button" class="amount-option" data-amount="250"><img class="deposit-amount-icon" src="./assets/tether-usdt-icon.png" alt="" aria-hidden="true">250</button>
+          <button type="button" class="amount-option" data-amount="500"><img class="deposit-amount-icon" src="./assets/tether-usdt-icon.png" alt="" aria-hidden="true">500</button>
         </div>
         <label class="deposit-custom"><span>Введите свою сумму</span><input id="deposit-amount" type="number" min="1" max="10000" step="0.01" value="100"></label>
         <div class="deposit-providers" role="group" aria-label="Способ пополнения">
@@ -397,11 +404,20 @@
   <section id="purchase-success" class="info-modal" hidden aria-modal="true" role="dialog" aria-labelledby="success-title">
     <div class="info-modal-dialog success-dialog"><div class="checkout-header"><h2 id="success-title">Покупка успешна</h2><button id="success-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><p class="success-mark" aria-hidden="true">✓</p><p id="success-order" class="status"></p><pre id="success-items" class="success-items"></pre><section class="rebind-panel" aria-labelledby="rebind-title"><div class="rebind-heading"><span class="rebind-icon" aria-hidden="true">↗</span><div><h3 id="rebind-title">Смена номера</h3><p>Укажите номер, который хотите привязать</p></div></div><label class="rebind-field"><span>Номер телефона</span><input type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" disabled></label><p class="rebind-security-note">Подтверждение проходит на специализированном сервисе. Код вводите только там — бот его не запрашивает. Данные никакие не собираются.</p><button class="primary-button rebind-button" type="button" disabled>Перейти</button></section><div class="product-actions"><button id="success-history" class="primary-button" type="button">Открыть покупки</button></div></div>
   </section>
-  <section id="news-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-label="Обновление от 29.10.2026">
+  <section id="news-modal" class="info-modal" hidden aria-modal="true" role="dialog" aria-label="Обновление от 13.11.2026">
     <div class="info-modal-dialog news-dialog">
       <div class="checkout-header news-header">
         <button id="news-modal-close" class="modal-close" type="button" aria-label="Закрыть">×</button>
       </div>
+      <article class="news-post">
+        <h3>Обновление от 13.11.2026</h3>
+        <ul>
+          <li>Внесены особо важные технические правки по выдаче товара;</li>
+          <li>Исправили баг, вызывающий редкие случаи, когда при покупке товара бот выдавал уже нерабочую ссылку на сайт;</li>
+          <li>Мелкие правки, доработки и улучшения проекта и общей визуальной составляющей.</li>
+        </ul>
+      </article>
+      <hr class="news-divider">
       <article class="news-post">
         <h3>Обновление от 29.10.2026</h3>
         <ul>
