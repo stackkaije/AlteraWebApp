@@ -1681,15 +1681,15 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
     right: 10px;
     left: 10px;
     bottom: env(safe-area-inset-bottom);
-    padding: 5px;
+    padding: 4px 5px 0;
     border: 1px solid rgba(255,255,255,.09);
     border-radius: 21px;
     background: rgba(15, 15, 17, .9);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 10px 24px rgba(0,0,0,.4);
   }
   :root[data-design="night"] .tab {
-    min-height: 50px;
-    padding: 4px 2px;
+    min-height: 46px;
+    padding: 2px;
     font-size: 9px;
   }
 }
