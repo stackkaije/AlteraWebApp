@@ -1620,11 +1620,11 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
 
 :root[data-design="night"] .tabs {
   right: max(14px, calc((100vw - 600px) / 2));
-  bottom: calc(6px + env(safe-area-inset-bottom));
+  bottom: env(safe-area-inset-bottom);
   left: max(14px, calc((100vw - 600px) / 2));
   justify-content: space-around;
   gap: 4px;
-  padding: 6px 7px calc(6px + env(safe-area-inset-bottom));
+  padding: 6px 7px 5px;
   border: 1px solid rgba(255,255,255,.09);
   border-radius: 23px;
   background: rgba(15, 15, 17, .9);
@@ -1680,8 +1680,8 @@ button.is-loading::after { content: ""; position: absolute; width: 1em; height: 
   :root[data-design="night"] .tabs {
     right: 10px;
     left: 10px;
-    bottom: calc(4px + env(safe-area-inset-bottom));
-    padding: 5px 5px calc(5px + env(safe-area-inset-bottom));
+    bottom: env(safe-area-inset-bottom);
+    padding: 5px;
     border: 1px solid rgba(255,255,255,.09);
     border-radius: 21px;
     background: rgba(15, 15, 17, .9);
