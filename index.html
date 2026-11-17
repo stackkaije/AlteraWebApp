@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#000000">
   <title>Каталог товаров</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="./style.css?v=194">
+  <link rel="stylesheet" href="./style.css?v=195">
 </head>
 <body>
   <main class="app">
@@ -76,12 +76,6 @@
       <header class="topbar">
         <h1>Выбери <span>своё.</span></h1>
       </header>
-      <section class="update-banner" aria-label="Логи обновлений">
-        <button id="update-news-open" class="update-banner-button" type="button" aria-label="Открыть логи обновлений">
-          <span>Логи обновлений</span>
-          <span class="update-banner-date">Обновлено 13.11</span>
-        </button>
-      </section>
       <div class="catalog-search">
         <div class="search-row">
           <span class="search-icon" aria-hidden="true">⌕</span>
@@ -253,6 +247,10 @@
         <div class="profile-card-heading"><strong>Безопасность аккаунта</strong><span>Фраза нужна для привязки другого Telegram</span></div>
         <div id="recovery-setting-status" class="settings-security-status">Проверяем состояние фразы восстановления...</div>
         <button id="recovery-create-button" class="secondary-button" type="button" hidden>Создать фразу восстановления</button>
+      </section>
+      <section class="profile-card settings-card">
+        <div class="profile-card-heading"><strong>Информация</strong><span>Обновления и изменения</span></div>
+        <button id="update-news-open" class="secondary-button" type="button">Последние изменения</button>
       </section>
     </section>
 
@@ -462,6 +460,6 @@
       </article>
     </div>
   </section>
-  <script src="./app.js?v=194"></script>
+  <script src="./app.js?v=195"></script>
 </body>
 </html>

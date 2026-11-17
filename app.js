@@ -84,10 +84,13 @@ document.addEventListener("keydown", (event) => {
     closeCartSheet();
   }
 });
-$("update-news-open").addEventListener("click", () => {
-  $("news-modal").hidden = false;
-  $("news-modal-close").focus();
-});
+const updateNewsOpen = $("update-news-open");
+if (updateNewsOpen) {
+  updateNewsOpen.addEventListener("click", () => {
+    $("news-modal").hidden = false;
+    $("news-modal-close").focus();
+  });
+}
 $("news-modal-close").addEventListener("click", () => { $("news-modal").hidden = true; });
 $("news-modal").addEventListener("click", (event) => {
   if (event.target === $("news-modal")) $("news-modal").hidden = true;
@@ -95,7 +98,7 @@ $("news-modal").addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !$("news-modal").hidden) {
     $("news-modal").hidden = true;
-    $("update-news-open").focus();
+    updateNewsOpen?.focus();
   }
 });
 $("quantity-minus").addEventListener("click", () => changeQuantity(-1));
@@ -611,7 +614,6 @@ async function loadMarketplace() {
 function showView(viewId) {
   const activeView = document.getElementById(viewId);
   if (!activeView?.classList.contains("view")) return;
-  localStorage.setItem("altera-active-view", viewId);
   if (viewId !== "product-view") {
     currentProductId = null;
     localStorage.removeItem("altera-active-product");
@@ -1999,19 +2001,10 @@ function initializeApp() {
   $("account-gate").hidden = true;
   if (appInitialized) return;
   appInitialized = true;
-  const savedView = localStorage.getItem("altera-active-view");
-  const savedViewNode = savedView && document.getElementById(savedView);
-  if (savedViewNode?.classList.contains("view")) showView(savedView);
-  if (savedView === "product-view") $("product-detail").innerHTML = `<div class="skeleton skeleton-product"></div>`;
-  loadCatalog().then(() => {
-    if (savedView === "product-view") {
-      const productId = Number(localStorage.getItem("altera-active-product"));
-      const product = categories.find((item) => item.id === productId);
-      if (product) openProductPage(product);
-      else showView("catalog-view");
-    }
-  });
-  if (savedView !== "profile-view") loadProfile();
+  showView("catalog-view");
+  $("product-detail").innerHTML = `<div class="skeleton skeleton-product"></div>`;
+  loadCatalog();
+  loadProfile();
   if (localStorage.getItem(tutorialSeenKey) !== "true") {
     window.setTimeout(startTutorial, 500);
   }
